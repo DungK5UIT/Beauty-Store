@@ -13,7 +13,7 @@ Một ứng dụng E-commerce chuyên bán mỹ phẩm, được phát triển d
 - [Đóng góp](#đóng-góp)
 - [Liên hệ](#liên-hệ)
 
-## Giới thiệu
+## Giới thiệu về trang web
 
 **=Beauty Store** là một nền tảng thương mại điện tử được thiết kế để cung cấp các sản phẩm mỹ phẩm, sữa rửa mặt, serum, kem dưỡng, ... và các sản phẩm liên quan. Ứng dụng hỗ trợ các tính năng như quản lý sản phẩm, giỏ hàng, đơn hàng, và xác thực người dùng bằng JWT. Với thiết kế hiện đại và giao diện thân thiện, 
 Beauty Store hướng đến việc mang lại trải nghiệm tốt nhất cho người dùng yêu thích skincare.
