@@ -46,7 +46,7 @@ const Header = () => {
               onClick={handleCartClick}
             >
               <ShoppingCart size={16} />
-              <span>Giỏ hàng</span>
+              <Link to="/cart">Giỏ hàng</Link>
             </button>
             <button
               className="flex items-center space-x-1 hover:text-yellow-600 transition-colors duration-200"
