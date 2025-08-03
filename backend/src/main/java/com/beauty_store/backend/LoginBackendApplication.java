@@ -4,10 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class BeautyStoreBackendApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(BeautyStoreBackendApplication.class, args);
-	}
-
+public class LoginBackendApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(LoginBackendApplication.class, args);
+    }
 }
