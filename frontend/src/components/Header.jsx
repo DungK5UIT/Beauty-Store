@@ -1,9 +1,20 @@
-import React from 'react';
-import { Search, ShoppingCart, User, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, ShoppingCart, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
+
+  // Kiểm tra localStorage khi component mount
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.fullName) {
+      setIsLoggedIn(true);
+      setUserName(user.fullName);
+    }
+  }, []);
 
   const handleSearchClick = () => {
     navigate('/search');
@@ -13,7 +24,7 @@ const Header = () => {
     navigate('/cart');
   };
 
-  const handleLoginClick = () => {
+  const handleUserClick = () => {
     navigate('/login');
   };
 
@@ -23,26 +34,26 @@ const Header = () => {
         <div className="flex justify-between items-center py-2 text-sm border-b border-gray-700">
           <div>Hotline tư vấn: 012345678</div>
           <div className="flex items-center space-x-4">
-            <button 
-              className="flex items-center space-x-1 hover:text-yellow-600 transition-colors duration-200" 
+            <button
+              className="flex items-center space-x-1 hover:text-yellow-600 transition-colors duration-200"
               onClick={handleSearchClick}
             >
               <Search size={16} />
               <span>Tìm kiếm</span>
             </button>
-            <button 
-              className="flex items-center space-x-1 hover:text-yellow-600 transition-colors duration-200" 
+            <button
+              className="flex items-center space-x-1 hover:text-yellow-600 transition-colors duration-200"
               onClick={handleCartClick}
             >
               <ShoppingCart size={16} />
               <span>Giỏ hàng</span>
             </button>
-            <button 
-              className="flex items-center space-x-1 hover:text-yellow-600 transition-colors duration-200" 
-              onClick={handleLoginClick}
+            <button
+              className="flex items-center space-x-1 hover:text-yellow-600 transition-colors duration-200"
+              onClick={handleUserClick}
             >
               <User size={16} />
-              <span>Đăng nhập</span>
+              <span>{isLoggedIn ? userName : 'Đăng nhập'}</span>
             </button>
           </div>
         </div>
