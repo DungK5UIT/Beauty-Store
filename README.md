@@ -1,6 +1,6 @@
 # BEAUTY STORE
 
-Một ứng dụng E-commerce chuyên bán mỹ phẩm, được phát triển dựa trên **ReactJS** và **Spring Boot**.
+Một ứng dụng E-commerce chuyên bán mỹ phẩm, được phát triển dựa trên **ReactJS** và  & **TailWindCSS** and **Spring Boot**.
 
 ## 📖 Mục lục
 
