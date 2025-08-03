@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Trash2, Minus, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState(() => {
@@ -26,6 +27,7 @@ const Cart = () => {
     }
     return price;
   };
+    const navigate = useNavigate();
 
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const total = cartItems
@@ -156,7 +158,8 @@ const Cart = () => {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-lg hover:shadow-xl">
+                  <button   onClick={() => navigate('/pay')}
+    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-lg hover:shadow-xl">
                     Mua ngay
                   </button>
                 </div>
