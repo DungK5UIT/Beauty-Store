@@ -19,11 +19,9 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/**").permitAll() // Cho phép tất cả yêu cầu
             )
-            .csrf(csrf -> csrf.disable());
+            .csrf(csrf -> csrf.disable()); // Vô hiệu hóa CSRF
         return http.build();
     }
 
