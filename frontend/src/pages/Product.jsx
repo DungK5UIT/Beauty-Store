@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import supabase from '../config/supabaseClient.js';
 import Sidebar from '../components/Sidebar.jsx';
 import ProductCard from '../components/ProductCard.jsx';
+import axios from 'axios';
 
 const Product = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -10,49 +12,58 @@ const Product = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '' });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
 
-  // Hàm chuyển đổi giá từ chuỗi (VD: '350.000 VND') hoặc số sang số
-  const parsePrice = (price) => {
-    if (!price) return 0;
-    if (typeof price === 'number') return price;
-    return parseFloat(price.replace(/[^\d]/g, '')) || 0;
-  };
+  // Check login status
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.id) {
+      setIsLoggedIn(true);
+    }
+  }, []);
 
-  // Hàm thêm sản phẩm vào giỏ hàng
-  const addProductToCart = (product) => {
+  // Add product to cart
+  const addProductToCart = async (product) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || !user.id) {
+      setToast({ show: true, message: 'Vui lòng đăng nhập để thêm vào giỏ hàng!' });
+      setTimeout(() => setToast({ show: false, message: '' }), 3000);
+      navigate('/login', { state: { from: '/product' } });
+      return;
+    }
+
     try {
-      const savedCart = localStorage.getItem('cart');
-      let cartItems = savedCart ? JSON.parse(savedCart) : [];
-      
-      const existingProduct = cartItems.find((item) => item.id === product.id);
-      if (existingProduct) {
-        cartItems = cartItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      } else {
-        cartItems.push({ ...product, quantity: 1 });
-      }
-      
-      localStorage.setItem('cart', JSON.stringify(cartItems));
-      // Dispatch a custom event to notify Cart component of the update
-      window.dispatchEvent(new Event('cartUpdated'));
-      // Show success toast
+      const response = await axios.post(`http://localhost:8080/api/cart/add/${user.id}`, {
+        productId: product.id,
+        quantity: 1,
+      });
       setToast({ show: true, message: `${product.name} đã được thêm vào giỏ hàng!` });
-      // Hide toast after 3 seconds
       setTimeout(() => setToast({ show: false, message: '' }), 3000);
     } catch (err) {
-      console.error('Lỗi khi thêm vào giỏ hàng:', err);
-      setToast({ show: true, message: 'Có lỗi xảy ra khi thêm vào giỏ hàng!' });
+      console.error('Lỗi khi thêm vào giỏ hàng:', {
+        message: err.message,
+        response: err.response ? {
+          status: err.response.status,
+          data: err.response.data,
+          headers: err.response.headers,
+        } : null,
+        request: err.request ? err.request : null,
+      });
+      setToast({ show: true, message: err.response?.data?.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng!' });
       setTimeout(() => setToast({ show: false, message: '' }), 3000);
     }
   };
 
-  // Lấy dữ liệu từ Supabase khi component được mount
+  // Fetch products from Supabase
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProducts = async (page = 1, pageSize = 10) => {
       try {
         setLoading(true);
-        const { data, error } = await supabase.from('products').select('*');
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .range((page - 1) * pageSize, page * pageSize - 1);
 
         if (error) {
           throw error;
@@ -70,10 +81,10 @@ const Product = () => {
     fetchProducts();
   }, []);
 
-  // Lọc sản phẩm dựa trên category và priceRange
+  // Filter products
   const filteredProducts = products.filter((product) => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    const price = parsePrice(product.price);
+    const price = product.price;
     let matchesPrice = true;
 
     if (selectedPriceRange !== 'all') {
@@ -91,7 +102,6 @@ const Product = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 relative">
-      {/* Toast Notification */}
       {toast.show && (
         <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50 animate-fade-in-out">
           {toast.message}
@@ -123,6 +133,7 @@ const Product = () => {
                         key={product.id}
                         product={product}
                         onAddToCart={() => addProductToCart(product)}
+                        isLoggedIn={isLoggedIn}
                       />
                     ))
                   ) : (

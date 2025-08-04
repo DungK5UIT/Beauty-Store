@@ -4,6 +4,13 @@ import {
   ArrowLeft, MapPin, Phone, Mail, CreditCard,
   Truck, Check, QrCode, Shield, User
 } from 'lucide-react';
+import axios from 'axios';
+
+// Hàm format giá tiền từ Cart
+const formatCurrency = (value) => {
+  if (!value) return '';
+  return Number(value).toLocaleString('vi-VN') + ' VNĐ';
+};
 
 const Pay = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -17,19 +24,28 @@ const Pay = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState('');
   const [showMomoQR, setShowMomoQR] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user'));
 
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    setCartItems(savedCart ? JSON.parse(savedCart) : []);
-  }, []);
+    const fetchCart = async () => {
+      if (!user || !user.id) {
+        setError('Vui lòng đăng nhập để thanh toán');
+        navigate('/login', { state: { from: '/pay' } });
+        return;
+      }
 
-  const parsePrice = (price) => {
-    if (typeof price === 'string') {
-      return parseInt(price.replace(/\./g, ''), 10);
-    }
-    return price;
-  };
+      try {
+        const response = await axios.get(`http://localhost:8080/api/cart/${user.id}`);
+        setCartItems(response.data);
+      } catch (err) {
+        setError(err.response?.data || 'Không thể tải giỏ hàng');
+        console.error('Fetch cart failed:', err.response || err);
+      }
+    };
+    fetchCart();
+  }, [navigate, user]);
 
   const handleInputChange = (e) => {
     setShippingInfo({
@@ -44,19 +60,24 @@ const Pay = () => {
   };
 
   const handlePlaceOrder = () => {
+    if (!user || !user.id) {
+      setError('Vui lòng đăng nhập để đặt hàng');
+      navigate('/login', { state: { from: '/pay' } });
+      return;
+    }
     if (!paymentMethod) {
-      alert('Vui lòng chọn phương thức thanh toán');
+      setError('Vui lòng chọn phương thức thanh toán');
       return;
     }
     if (!shippingInfo.fullName || !shippingInfo.phone || !shippingInfo.address) {
-      alert('Vui lòng điền đầy đủ thông tin giao hàng');
+      setError('Vui lòng điền đầy đủ thông tin giao hàng');
       return;
     }
     alert('Đặt hàng thành công!');
   };
 
   const total = cartItems.reduce(
-    (sum, item) => sum + parsePrice(item.price) * item.quantity,
+    (sum, item) => sum + item.price * item.quantity,
     0
   );
 
@@ -73,6 +94,8 @@ const Pay = () => {
             <p className="text-gray-600">Hoàn tất đơn hàng của bạn</p>
           </div>
         </div>
+
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column */}
@@ -248,32 +271,29 @@ const Pay = () => {
                   );
                 })}
               </div>
-{showMomoQR && (
-  <div className="mt-6 p-6 bg-pink-50 rounded-xl border border-pink-200">
-    <div className="text-center">
-      <div className="bg-white rounded-xl shadow-sm mb-4 overflow-hidden">
-        <img
-          src="https://xfswcnmwovkwdwimszov.supabase.co/storage/v1/object/sign/qrmomo/QRMOMO.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMzlmZTVhZi1mMGRhLTQwM2MtYmUxMy1iMTAxNWMxY2ZmNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJxcm1vbW8vUVJNT01PLmpwZyIsImlhdCI6MTc1NDIwNDkyNCwiZXhwIjoxNzg1NzQwOTI0fQ.Pcyi_cUgy_ExsQ-Vl0RKLTDoprdvOSeYYbCikaWCY-Q"
-          alt="QR MoMo"
-          className="w-full h-auto max-w-xs mx-auto rounded-xl"
-        />
-        <div className="text-xs text-gray-500 mt-2 pb-2">QR Code MoMo</div>
-      </div>
-      <h3 className="font-semibold text-gray-900 mb-2">Quét mã QR để thanh toán</h3>
-      <p className="text-sm text-gray-600 mb-2">
-        Số tiền:{' '}
-        <span className="font-bold text-pink-600">
-          {total.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
-        </span>
-      </p>
-      <p className="text-xs text-gray-500">
-        Mở ứng dụng MoMo và quét mã QR để thanh toán
-      </p>
-    </div>
-  </div>
-)}
 
-
+              {showMomoQR && (
+                <div className="mt-6 p-6 bg-pink-50 rounded-xl border border-pink-200">
+                  <div className="text-center">
+                    <div className="bg-white rounded-xl shadow-sm mb-4 overflow-hidden">
+                      <img
+                        src="https://xfswcnmwovkwdwimszov.supabase.co/storage/v1/object/sign/qrmomo/QRMOMO.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMzlmZTVhZi1mMGRhLTQwM2MtYmUxMy1iMTAxNWMxY2ZmNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJxcm1vbW8vUVJNT01PLmpwZyIsImlhdCI6MTc1NDIwNDkyNCwiZXhwIjoxNzg1NzQwOTI0fQ.Pcyi_cUgy_ExsQ-Vl0RKLTDoprdvOSeYYbCikaWCY-Q"
+                        alt="QR MoMo"
+                        className="w-full h-auto max-w-xs mx-auto rounded-xl"
+                      />
+                      <div className="text-xs text-gray-500 mt-2 pb-2">QR Code MoMo</div>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Quét mã QR để thanh toán</h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Số tiền:{' '}
+                      <span className="font-bold text-pink-600">{formatCurrency(total)}</span>
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Mở ứng dụng MoMo và quét mã QR để thanh toán
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -287,14 +307,11 @@ const Pay = () => {
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 text-sm">{item.name}</h4>
+                      <h4 className="font-medium text-gray-900 text-sm">{item.product.name}</h4>
                       <p className="text-gray-500 text-xs">Số lượng: {item.quantity}</p>
                     </div>
                     <div className="text-sm font-semibold text-gray-900">
-                      {(parsePrice(item.price) * item.quantity).toLocaleString('vi-VN', {
-                        style: 'currency',
-                        currency: 'VND'
-                      })}
+                      {formatCurrency(item.price * item.quantity)}
                     </div>
                   </div>
                 ))}
@@ -304,7 +321,7 @@ const Pay = () => {
               <div className="border-t border-gray-200 pt-4 space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Tạm tính</span>
-                  <span>{total.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</span>
+                  <span>{formatCurrency(total)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Phí vận chuyển</span>
@@ -312,9 +329,7 @@ const Pay = () => {
                 </div>
                 <div className="flex justify-between text-xl font-bold text-gray-900 border-t pt-3">
                   <span>Tổng cộng</span>
-                  <span className="text-blue-600">
-                    {total.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
-                  </span>
+                  <span className="text-blue-600">{formatCurrency(total)}</span>
                 </div>
               </div>
 

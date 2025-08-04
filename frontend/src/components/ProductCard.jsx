@@ -1,24 +1,12 @@
 import React from 'react';
 
-const ProductCard = ({ product, onAddToCart }) => {
+const formatCurrency = (value) => {
+  if (!value) return '';
+  return Number(value).toLocaleString('vi-VN') + ' VNĐ';
+};
+
+const ProductCard = ({ product, onAddToCart, isLoggedIn }) => {
   const tags = product.tags ? product.tags.split(',').map(tag => tag.trim()) : [];
-
-  // Parse price to number for cart
-  const parsePrice = (priceString) => {
-    // Remove 'VND' and replace '.' with '' to get clean number (e.g., '350.000 VND' → 350000)
-    return parseFloat(priceString.replace(/[^0-9]+/g, '')) || 0;
-  };
-
-  const handleAddToCart = () => {
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: parsePrice(product.price), // Store as number (350000)
-      quantity: 1,
-      image: product.image || '/placeholder-image.jpg',
-    };
-    onAddToCart(cartItem);
-  };
 
   return (
     <div className="bg-white rounded shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
@@ -55,16 +43,19 @@ const ProductCard = ({ product, onAddToCart }) => {
         <div className="mb-3">
           {product.originalPrice && (
             <span className="text-gray-400 text-sm line-through mr-2">
-              {product.originalPrice}
+              {formatCurrency(product.originalPrice)}
             </span>
           )}
-          <span className="text-red-600 font-semibold">{product.price}</span>
+          <span className="text-red-600 font-semibold">
+            {formatCurrency(product.price)}
+          </span>
         </div>
         <button
-          onClick={handleAddToCart}
-          className="w-full bg-gray-800 text-white py-2 px-4 rounded hover:bg-gray-700 transition-colors duration-200"
+          onClick={onAddToCart}
+          disabled={!isLoggedIn}
+          className="w-full bg-gray-800 text-white py-2 px-4 rounded hover:bg-gray-700 transition-colors duration-200 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
         >
-          Thêm vào giỏ hàng
+          {isLoggedIn ? 'Thêm vào giỏ hàng' : 'Đăng nhập để mua sản phẩm'}
         </button>
       </div>
     </div>

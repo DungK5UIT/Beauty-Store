@@ -17,14 +17,15 @@ const Login = ({ onBack }) => {
     rememberMe: false,
   });
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
-  // Kiểm tra localStorage khi component mount
+  // Kiểm tra trạng thái đăng nhập khi component mount
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
-    if (user && user.fullName) { // Thay full_name thành fullName để khớp với User model
+    if (user && user.id) {
       setIsLoggedIn(true);
-      setUserName(user.fullName); // Thay full_name thành fullName
+      setUserName(user.fullName);
     }
   }, []);
 
@@ -39,21 +40,31 @@ const Login = ({ onBack }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     try {
       const url = isLogin ? 'http://localhost:8080/api/auth/login' : 'http://localhost:8080/api/auth/register';
       const response = await axios.post(url, formData);
-      console.log(isLogin ? 'Login successful:' : 'Registration successful:', response.data);
+      const user = response.data;
 
-      // Lưu thông tin user vào localStorage
       if (isLogin) {
-        localStorage.setItem('user', JSON.stringify(response.data));
+        // Xử lý đăng nhập
+        localStorage.setItem('user', JSON.stringify(user));
         setIsLoggedIn(true);
-        setUserName(response.data.fullName); // Thay full_name thành fullName
+        setUserName(user.fullName);
         window.location.reload();
+        navigate('/');
+      } else {
+        // Xử lý đăng ký
+        setSuccessMessage('Đăng ký thành công! Vui lòng đăng nhập.');
+        setIsLogin(true); // Chuyển về màn hình đăng nhập
+        setFormData({
+          email: formData.email, // Giữ lại email để tiện đăng nhập
+          password: '',
+          confirmPassword: '',
+          fullName: '',
+          rememberMe: false,
+        });
       }
-
-      // Chuyển hướng sang trang chủ
-      navigate('/');
     } catch (err) {
       const errorMessage = err.response?.data || 'Đã có lỗi xảy ra, vui lòng thử lại';
       setError(errorMessage);
@@ -73,6 +84,7 @@ const Login = ({ onBack }) => {
       rememberMe: false,
     });
     setError('');
+    setSuccessMessage('');
     window.location.reload();
   };
 
@@ -86,6 +98,7 @@ const Login = ({ onBack }) => {
       rememberMe: false,
     });
     setError('');
+    setSuccessMessage('');
   };
 
   return (
@@ -113,6 +126,7 @@ const Login = ({ onBack }) => {
         </div>
         <div className="bg-white p-8 rounded-xl shadow-lg">
           {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+          {successMessage && <p className="text-green-500 text-sm mb-4">{successMessage}</p>}
           {!isLoggedIn ? (
             <form className="space-y-6" onSubmit={handleSubmit}>
               {!isLogin && (
@@ -249,7 +263,7 @@ const Login = ({ onBack }) => {
               </button>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="px-2 bg-white text-gray-500">Hoặc</span>
