@@ -21,7 +21,7 @@ const Login = ({ onBack }) => {
   const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
-  // Kiểm tra trạng thái đăng nhập khi component mount
+  // Check login status on component mount
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.id) {
@@ -29,13 +29,6 @@ const Login = ({ onBack }) => {
       setUserName(user.fullName);
     }
   }, []);
-
-  // Chuyển hướng khi đăng nhập thành công
-  useEffect(() => {
-    if (isLoggedIn) {
-      navigate('/', { replace: true }); // Sử dụng replace để tránh quay lại trang login
-    }
-  }, [isLoggedIn, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -61,6 +54,8 @@ const Login = ({ onBack }) => {
         localStorage.setItem('user', JSON.stringify(user));
         setIsLoggedIn(true);
         setUserName(user.fullName);
+        // Reload the page to update the header with the username
+        window.location.reload();
       } else {
         setSuccessMessage('Đăng ký thành công! Vui lòng đăng nhập.');
         setIsLogin(true);
@@ -94,7 +89,10 @@ const Login = ({ onBack }) => {
     });
     setError('');
     setSuccessMessage('');
+    // Redirect to login page after logout
     navigate('/login', { replace: true });
+    // Reload the page to ensure header updates (e.g., remove username)
+    window.location.reload();
   };
 
   const toggleForm = () => {
@@ -142,7 +140,6 @@ const Login = ({ onBack }) => {
             </div>
           ) : !isLoggedIn ? (
             <form className="space-y-6" onSubmit={handleSubmit}>
-              {/* JSX của form giữ nguyên như cũ */}
               {!isLogin && (
                 <div>
                   <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
