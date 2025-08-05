@@ -83,13 +83,25 @@ const Login = ({ onBack }) => {
     } catch (err) {
       const errorMessage = err.response?.data || 'Đã có lỗi xảy ra, vui lòng thử lại';
       setError(errorMessage);
-      console.error(isLogin ? 'Login failed:' : 'Registration failed:', err.response || err);
+      console.error(isLogin ? 'Đăng nhập thất bại:' : 'Đăng ký thất bại:', err.response || err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.id) {
+      try {
+        await axios.post('https://deploy-backend-production-e64e.up.railway.app/api/auth/logout', {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+        });
+      } catch (err) {
+        console.error('Đăng xuất thất bại:', err.response || err);
+      }
+    }
     localStorage.removeItem('user');
     setIsLoggedIn(false);
     setUserName('');
