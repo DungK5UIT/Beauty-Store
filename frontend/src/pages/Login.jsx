@@ -27,8 +27,9 @@ const Login = ({ onBack }) => {
     if (user && user.id) {
       setIsLoggedIn(true);
       setUserName(user.fullName);
+      navigate('/', { replace: true }); // Redirect to home if already logged in
     }
-  }, []);
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -47,15 +48,19 @@ const Login = ({ onBack }) => {
       const url = isLogin
         ? 'https://deploy-backend-production-e64e.up.railway.app/api/auth/login'
         : 'https://deploy-backend-production-e64e.up.railway.app/api/auth/register';
-      const response = await axios.post(url, formData);
+      const response = await axios.post(url, {
+        email: formData.email,
+        password: formData.password,
+        ...(isLogin ? { rememberMe: formData.rememberMe } : { fullName: formData.fullName }),
+      });
       const user = response.data;
 
       if (isLogin) {
         localStorage.setItem('user', JSON.stringify(user));
         setIsLoggedIn(true);
         setUserName(user.fullName);
-        // Reload the page to update the header with the username
-        window.location.reload();
+        navigate('/', { replace: true }); // Redirect to home after login
+        window.location.reload(); // Reload to update header
       } else {
         setSuccessMessage('Đăng ký thành công! Vui lòng đăng nhập.');
         setIsLogin(true);
@@ -89,10 +94,8 @@ const Login = ({ onBack }) => {
     });
     setError('');
     setSuccessMessage('');
-    // Redirect to login page after logout
     navigate('/login', { replace: true });
-    // Reload the page to ensure header updates (e.g., remove username)
-    window.location.reload();
+    window.location.reload(); // Reload to update header
   };
 
   const toggleForm = () => {
