@@ -43,7 +43,19 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.id) {
+      try {
+        // Gọi API logout để đặt is_online = false trong CSDL
+        await axios.post('https://deploy-backend-production-e64e.up.railway.app/api/auth/logout', {
+          id: user.id
+        });
+      } catch (error) {
+        console.error('Lỗi khi đăng xuất:', error);
+      }
+    }
+    // Xóa dữ liệu client-side sau khi gọi API
     localStorage.removeItem('user');
     setIsLoggedIn(false);
     setUserName('');
