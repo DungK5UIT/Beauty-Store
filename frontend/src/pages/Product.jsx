@@ -34,7 +34,7 @@ const Product = () => {
     }
 
     try {
-      const response = await axios.post(`deploy-backend-production-e64e.up.railway.app/api/cart/add/${user.id}`, {
+      const response = await axios.post(`https://deploy-backend-production-e64e.up.railway.app/api/cart/add/${user.id}`, {
         productId: product.id,
         quantity: 1,
       });

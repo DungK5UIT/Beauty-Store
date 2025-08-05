@@ -34,7 +34,7 @@ const Cart = () => {
       }
 
       try {
-        const response = await axios.get(`deploy-backend-production-e64e.up.railway.app/api/cart/${user.id}`);
+        const response = await axios.get(`https://deploy-backend-production-e64e.up.railway.app/api/cart/${user.id}`);
         setCartItems(response.data);
       } catch (err) {
         setError(err.response?.data || 'Không thể tải giỏ hàng');
@@ -62,7 +62,7 @@ const Cart = () => {
     setLoadingItems((prev) => ({ ...prev, [cartItemId]: true }));
 
     try {
-      await axios.post(`deploy-backend-production-e64e.up.railway.app/api/cart/update/${user.id}`, {
+      await axios.post(`https://deploy-backend-production-e64e.up.railway.app/api/cart/update/${user.id}`, {
         cartItemId,
         quantity: newQuantity,
       });
@@ -99,7 +99,7 @@ const Cart = () => {
     setLoadingItems((prev) => ({ ...prev, [cartItemId]: true }));
 
     try {
-      await axios.delete(`deploy-backend-production-e64e.up.railway.app/api/cart/remove/${user.id}/${cartItemId}`);
+      await axios.delete(`https://deploy-backend-production-e64e.up.railway.app/api/cart/remove/${user.id}/${cartItemId}`);
     } catch (err) {
       setError(err.response?.data || 'Không thể xóa sản phẩm');
       setCartItems(originalItems);
