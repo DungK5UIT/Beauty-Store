@@ -95,11 +95,13 @@ const Login = ({ onBack }) => {
       try {
         await axios.post('https://deploy-backend-production-e64e.up.railway.app/api/auth/logout', {
           id: user.id,
-          email: user.email,
-          fullName: user.fullName,
         });
+        setSuccessMessage('Đăng xuất thành công');
       } catch (err) {
+        const errorMessage = err.response?.data || 'Đăng xuất thất bại, vui lòng thử lại';
+        setError(errorMessage);
         console.error('Đăng xuất thất bại:', err.response || err);
+        return; // Không tiếp tục xóa localStorage nếu đăng xuất thất bại
       }
     }
     localStorage.removeItem('user');
@@ -113,7 +115,6 @@ const Login = ({ onBack }) => {
       rememberMe: false,
     });
     setError('');
-    setSuccessMessage('');
     navigate('/login', { replace: true });
     window.location.reload();
   };
