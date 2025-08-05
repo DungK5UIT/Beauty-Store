@@ -33,7 +33,7 @@ const Login = ({ onBack }) => {
   // Chuyển hướng khi đăng nhập thành công
   useEffect(() => {
     if (isLoggedIn) {
-      navigate('/', { replace: true }); // Sử dụng replace để tránh quay lại trang login
+      navigate('/login', { replace: true }); // Chuyển về /login sau khi đăng nhập
     }
   }, [isLoggedIn, navigate]);
 
@@ -61,6 +61,7 @@ const Login = ({ onBack }) => {
         localStorage.setItem('user', JSON.stringify(user));
         setIsLoggedIn(true);
         setUserName(user.fullName);
+        window.location.reload(); // Reload để hiển thị tên người dùng
       } else {
         setSuccessMessage('Đăng ký thành công! Vui lòng đăng nhập.');
         setIsLogin(true);
@@ -94,7 +95,8 @@ const Login = ({ onBack }) => {
     });
     setError('');
     setSuccessMessage('');
-    navigate('/login', { replace: true });
+    navigate('/login', { replace: true }); // Chuyển về /login sau khi đăng xuất
+    window.location.reload(); // Reload để đảm bảo trạng thái cập nhật
   };
 
   const toggleForm = () => {
@@ -142,7 +144,6 @@ const Login = ({ onBack }) => {
             </div>
           ) : !isLoggedIn ? (
             <form className="space-y-6" onSubmit={handleSubmit}>
-              {/* JSX của form giữ nguyên như cũ */}
               {!isLogin && (
                 <div>
                   <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
