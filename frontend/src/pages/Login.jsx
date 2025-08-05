@@ -53,7 +53,7 @@ const url = isLogin
         setIsLoggedIn(true);
         setUserName(user.fullName);
         window.location.reload();
-        navigate('/');
+        navigate('/product');
       } else {
         // Xử lý đăng ký
         setSuccessMessage('Đăng ký thành công! Vui lòng đăng nhập.');
