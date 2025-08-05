@@ -42,8 +42,9 @@ const Login = ({ onBack }) => {
     setError('');
     setSuccessMessage('');
     try {
-      const url = isLogin ? 'deploy-backend-production-e64e.up.railway.app/api/auth/login' : 'deploy-backend-production-e64e.up.railway.app/api/auth/register';
-      const response = await axios.post(url, formData);
+const url = isLogin 
+  ? 'https://deploy-backend-production-e64e.up.railway.app/api/auth/login' 
+  : 'https://deploy-backend-production-e64e.up.railway.app/api/auth/register';      const response = await axios.post(url, formData);
       const user = response.data;
 
       if (isLogin) {
