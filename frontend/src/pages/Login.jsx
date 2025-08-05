@@ -27,7 +27,7 @@ const Login = ({ onBack }) => {
     if (user && user.id) {
       setIsLoggedIn(true);
       setUserName(user.fullName);
-      navigate('/', { replace: true }); // Redirect to home if already logged in
+      navigate('/', { replace: true });
     }
   }, [navigate]);
 
@@ -44,6 +44,14 @@ const Login = ({ onBack }) => {
     setError('');
     setSuccessMessage('');
     setIsLoading(true);
+
+    // Validate confirmPassword for registration
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      setError('Mật khẩu và xác nhận mật khẩu không khớp');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const url = isLogin
         ? 'https://deploy-backend-production-e64e.up.railway.app/api/auth/login'
@@ -59,8 +67,8 @@ const Login = ({ onBack }) => {
         localStorage.setItem('user', JSON.stringify(user));
         setIsLoggedIn(true);
         setUserName(user.fullName);
-        navigate('/', { replace: true }); // Redirect to home after login
-        window.location.reload(); // Reload to update header
+        navigate('/', { replace: true });
+        window.location.reload();
       } else {
         setSuccessMessage('Đăng ký thành công! Vui lòng đăng nhập.');
         setIsLogin(true);
@@ -95,7 +103,7 @@ const Login = ({ onBack }) => {
     setError('');
     setSuccessMessage('');
     navigate('/login', { replace: true });
-    window.location.reload(); // Reload to update header
+    window.location.reload();
   };
 
   const toggleForm = () => {
