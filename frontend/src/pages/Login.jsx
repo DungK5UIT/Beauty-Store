@@ -6,6 +6,7 @@ import axios from 'axios';
 const Login = ({ onBack }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [userName, setUserName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -29,6 +30,13 @@ const Login = ({ onBack }) => {
     }
   }, []);
 
+  // Chuyển hướng khi đăng nhập thành công
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate('/', { replace: true }); // Sử dụng replace để tránh quay lại trang login
+    }
+  }, [isLoggedIn, navigate]);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -41,25 +49,23 @@ const Login = ({ onBack }) => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
+    setIsLoading(true);
     try {
-const url = isLogin 
-  ? 'https://deploy-backend-production-e64e.up.railway.app/api/auth/login' 
-  : 'https://deploy-backend-production-e64e.up.railway.app/api/auth/register';      const response = await axios.post(url, formData);
+      const url = isLogin
+        ? 'https://deploy-backend-production-e64e.up.railway.app/api/auth/login'
+        : 'https://deploy-backend-production-e64e.up.railway.app/api/auth/register';
+      const response = await axios.post(url, formData);
       const user = response.data;
 
       if (isLogin) {
-        // Xử lý đăng nhập
         localStorage.setItem('user', JSON.stringify(user));
         setIsLoggedIn(true);
         setUserName(user.fullName);
-        window.location.reload();
-        navigate('/product');
       } else {
-        // Xử lý đăng ký
         setSuccessMessage('Đăng ký thành công! Vui lòng đăng nhập.');
-        setIsLogin(true); // Chuyển về màn hình đăng nhập
+        setIsLogin(true);
         setFormData({
-          email: formData.email, // Giữ lại email để tiện đăng nhập
+          email: formData.email,
           password: '',
           confirmPassword: '',
           fullName: '',
@@ -70,6 +76,8 @@ const url = isLogin
       const errorMessage = err.response?.data || 'Đã có lỗi xảy ra, vui lòng thử lại';
       setError(errorMessage);
       console.error(isLogin ? 'Login failed:' : 'Registration failed:', err.response || err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -86,7 +94,7 @@ const url = isLogin
     });
     setError('');
     setSuccessMessage('');
-    window.location.reload();
+    navigate('/login', { replace: true });
   };
 
   const toggleForm = () => {
@@ -128,8 +136,13 @@ const url = isLogin
         <div className="bg-white p-8 rounded-xl shadow-lg">
           {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
           {successMessage && <p className="text-green-500 text-sm mb-4">{successMessage}</p>}
-          {!isLoggedIn ? (
+          {isLoading ? (
+            <div className="text-center">
+              <p>Đang xử lý...</p>
+            </div>
+          ) : !isLoggedIn ? (
             <form className="space-y-6" onSubmit={handleSubmit}>
+              {/* JSX của form giữ nguyên như cũ */}
               {!isLogin && (
                 <div>
                   <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
@@ -258,6 +271,7 @@ const url = isLogin
               )}
               <button
                 type="submit"
+                disabled={isLoading}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition-colors"
               >
                 {isLogin ? 'Đăng nhập' : 'Đăng ký'}
