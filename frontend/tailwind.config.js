@@ -1,20 +1,30 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-     "./index.html"
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
-      colors: {
-        pink: {
-          600: '#db2777',
-          700: '#be185d'
+      // Thêm keyframes và animation cho hiệu ứng thông báo (Toast)
+      keyframes: {
+        'toast-in': {
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        'toast-out': {
+          '0%': { transform: 'translateX(0)', opacity: '1' },
+          '100%': { transform: 'translateX(100%)', opacity: '0' },
         }
+      },
+      animation: {
+        'toast-in': 'toast-in 0.5s ease-out forwards',
+        'toast-out': 'toast-out 0.5s ease-in forwards',
       }
     },
   },
-  plugins: [],
+  plugins: [
+    // Thêm plugin này để sử dụng class "line-clamp-2" trên ProductCard
+    require('@tailwindcss/line-clamp'),
+  ],
 }
-
-export default withUt(config);
