@@ -42,7 +42,7 @@ const Login = ({ onBack }) => {
     setError('');
     setSuccessMessage('');
     try {
-      const url = isLogin ? 'http://localhost:8080/api/auth/login' : 'http://localhost:8080/api/auth/register';
+      const url = isLogin ? 'deploy-backend-production-e64e.up.railway.app/api/auth/login' : 'deploy-backend-production-e64e.up.railway.app/api/auth/register';
       const response = await axios.post(url, formData);
       const user = response.data;
 

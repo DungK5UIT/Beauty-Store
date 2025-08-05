@@ -37,7 +37,7 @@ const Pay = () => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:8080/api/cart/${user.id}`);
+        const response = await axios.get(`deploy-backend-production-e64e.up.railway.app/api/cart/${user.id}`);
         setCartItems(response.data);
       } catch (err) {
         setError(err.response?.data || 'Không thể tải giỏ hàng');
