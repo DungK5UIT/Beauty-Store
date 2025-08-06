@@ -15,6 +15,7 @@ const App = () => {
         <Header /> 
         <main className="flex-grow">
           <Routes>
+            <Route path="/" element={<Product />} /> {/* Thêm route cho trang chủ */}
             <Route path="/product" element={<Product />} />
             <Route path="/login" element={<Login />} />
             <Route path="/cart" element={<Cart />} />

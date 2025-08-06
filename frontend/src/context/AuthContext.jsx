@@ -13,8 +13,20 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${JSON.parse(storedUser).token}`;
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        // Kiểm tra dữ liệu hợp lệ
+        if (parsedUser.token && parsedUser.email && parsedUser.role) {
+          setUser(parsedUser);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${parsedUser.token}`;
+        } else {
+          console.warn('Dữ liệu user trong localStorage không đầy đủ:', parsedUser);
+          localStorage.removeItem('user');
+        }
+      } catch (error) {
+        console.error('Lỗi khi parse user từ localStorage:', error);
+        localStorage.removeItem('user');
+      }
     }
     setLoading(false);
   }, []);
@@ -27,6 +39,11 @@ export const AuthProvider = ({ children }) => {
         password,
       });
       const { token, user: userData } = response.data;
+      // Kiểm tra xem userData có role không
+      if (!userData.role) {
+        console.warn('Response đăng nhập thiếu role:', userData);
+        userData.role = 'USER'; // Giá trị mặc định nếu thiếu role
+      }
       setUser({ ...userData, token });
       localStorage.setItem('user', JSON.stringify({ ...userData, token }));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
