@@ -2,37 +2,44 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingCart, User, ChevronDown, LogOut, UserCircle } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+// Giả sử bạn sẽ tạo file AuthContext.js như đã thảo luận
+import { useAuth } from './AuthContext'; 
+
+// URL của backend, nên được định nghĩa ở một nơi tập trung
+const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
 
 const Header = () => {
+  // --- THAY ĐỔI 1: Sử dụng context thay vì state cục bộ ---
+  const { user, logout } = useAuth(); 
   const navigate = useNavigate();
-  const location = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
+  const location = useLocation(); // Giữ lại location để cập nhật giỏ hàng khi chuyển trang
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
   const userMenuRef = useRef(null);
 
+  // --- THAY ĐỔI 2: useEffect để lấy giỏ hàng giờ phụ thuộc vào `user` và `location` ---
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user && user.fullName && user.id) {
-      setIsLoggedIn(true);
-      setUserName(user.fullName);
-      fetchCartCount(user.id);
-    }
-  }, [location]); // Reload cart count on route change
+    const fetchCartCount = async (userId) => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/cart/${userId}`);
+        const cartItems = response.data;
+        const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+        setCartItemCount(totalQuantity);
+      } catch (error) {
+        console.error('Không thể lấy giỏ hàng:', error);
+        setCartItemCount(0); // Reset nếu có lỗi
+      }
+    };
 
-  const fetchCartCount = async (userId) => {
-    try {
-      const response = await axios.get(`https://deploy-backend-production-e64e.up.railway.app/api/cart/${userId}`);
-      const cartItems = response.data;
-      const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-      setCartItemCount(totalQuantity);
-    } catch (error) {
-      console.error('Không thể lấy giỏ hàng:', error);
+    if (user && user.id) {
+      fetchCartCount(user.id);
+    } else {
+      // Nếu không có user, reset giỏ hàng
       setCartItemCount(0);
     }
-  };
+  }, [user, location]); // Chạy lại khi user thay đổi hoặc khi chuyển trang
 
+  // Đóng menu khi click ra ngoài (giữ nguyên)
   useEffect(() => {
     function handleClickOutside(event) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -43,29 +50,14 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user && user.id) {
-      try {
-        // Gọi API logout để đặt is_online = false trong CSDL
-        await axios.post('https://deploy-backend-production-e64e.up.railway.app/api/auth/logout', {
-          id: user.id
-        });
-      } catch (error) {
-        console.error('Lỗi khi đăng xuất:', error);
-      }
-    }
-    // Xóa dữ liệu client-side sau khi gọi API
-    localStorage.removeItem('user');
-    setIsLoggedIn(false);
-    setUserName('');
-    setCartItemCount(0);
-    setIsUserMenuOpen(false);
-    navigate('/');
+  // --- THAY ĐỔI 3: Đơn giản hóa hàm logout ---
+  const handleLogoutClick = () => {
+    setIsUserMenuOpen(false); // Đóng menu trước
+    logout(); // Gọi hàm logout từ context
   };
 
   const handleUserIconClick = () => {
-    if (isLoggedIn) {
+    if (user) {
       setIsUserMenuOpen(prev => !prev);
     } else {
       navigate('/login');
@@ -91,7 +83,8 @@ const Header = () => {
           <div className="flex items-center space-x-5">
             <ActionButton Icon={Search} onClick={() => navigate('/search')} />
 
-            {isLoggedIn && (
+            {/* --- THAY ĐỔI 4: Dùng `user` để render có điều kiện --- */}
+            {user && (
               <Link to="/cart" className="relative text-gray-500 hover:text-emerald-500 transition-colors duration-300">
                 <ShoppingCart size={22} />
                 {cartItemCount > 0 && (
@@ -109,9 +102,10 @@ const Header = () => {
               >
                 <User size={22} />
                 <span className="hidden lg:inline font-medium text-gray-700">
-                  {isLoggedIn ? `Chào, ${userName.split(' ')[0]}` : 'Tài khoản'}
+                  {/* Dùng user.fullName thay vì userName state */}
+                  {user ? `Chào, ${user.fullName.split(' ')[0]}` : 'Tài khoản'}
                 </span>
-                {isLoggedIn && (
+                {user && (
                   <ChevronDown
                     size={16}
                     className={`transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`}
@@ -119,7 +113,7 @@ const Header = () => {
                 )}
               </button>
 
-              {isLoggedIn && isUserMenuOpen && (
+              {user && isUserMenuOpen && (
                 <div className="absolute right-0 mt-3 w-48 bg-white rounded-md shadow-lg py-1 z-20 ring-1 ring-black ring-opacity-5">
                   <Link
                     to="/profile"
@@ -130,7 +124,7 @@ const Header = () => {
                     Tài khoản của tôi
                   </Link>
                   <button
-                    onClick={handleLogout}
+                    onClick={handleLogoutClick} // Dùng hàm đã được đơn giản hóa
                     className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
                   >
                     <LogOut size={18} className="mr-3 text-emerald-500" />
@@ -146,6 +140,7 @@ const Header = () => {
   );
 };
 
+// Các component phụ không thay đổi
 const NavLink = ({ to, children }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
