@@ -1,86 +1,74 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
+
+const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
+  // Khôi phục user từ localStorage khi khởi động
   useEffect(() => {
-    // Kiểm tra token trong localStorage khi khởi tạo
-    const token = localStorage.getItem('token');
-    const userId = localStorage.getItem('userId');
-    const email = localStorage.getItem('email');
-    const fullName = localStorage.getItem('fullName');
-    
-    if (token && userId && email && fullName) {
-      setUser({ id: userId, email, fullName });
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      axios.defaults.headers.common['Authorization'] = `Bearer ${JSON.parse(storedUser).token}`;
     }
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('https://your-api-base-url/api/auth/login', { email, password });
-      const { id, email: userEmail, fullName, token } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('userId', id);
-      localStorage.setItem('email', userEmail);
-      localStorage.setItem('fullName', fullName);
+      console.log('Gọi API đăng nhập:', `${API_BASE_URL}/api/auth/login`);
+      const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+        email,
+        password,
+      });
+      const { token, user: userData } = response.data;
+      setUser({ ...userData, token });
+      localStorage.setItem('user', JSON.stringify({ ...userData, token }));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser({ id, email: userEmail, fullName });
-      navigate('/', { replace: true });
+      console.log('Đăng nhập thành công:', userData);
     } catch (error) {
+      console.error('Lỗi đăng nhập:', error.response || error);
       throw error;
     }
   };
 
   const register = async (fullName, email, password, confirmPassword) => {
     try {
-      const response = await axios.post('https://your-api-base-url/api/auth/register', {
+      console.log('Gọi API đăng ký:', `${API_BASE_URL}/api/auth/register`);
+      const response = await axios.post(`${API_BASE_URL}/api/auth/register`, {
         fullName,
         email,
         password,
         confirmPassword,
       });
-      const { id, email: userEmail, fullName: userFullName, token } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('userId', id);
-      localStorage.setItem('email', userEmail);
-      localStorage.setItem('fullName', userFullName);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser({ id, email: userEmail, fullName: userFullName });
-      navigate('/', { replace: true });
+      console.log('Đăng ký thành công:', response.data);
+      // Không tự động đăng nhập sau khi đăng ký
     } catch (error) {
+      console.error('Lỗi đăng ký:', error.response || error);
       throw error;
     }
   };
 
   const logout = async () => {
     try {
-      const userId = localStorage.getItem('userId');
-      await axios.post('https://your-api-base-url/api/auth/logout', { id: userId });
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('email');
-      localStorage.removeItem('fullName');
-      delete axios.defaults.headers.common['Authorization'];
+      if (user?.id) {
+        console.log('Gọi API đăng xuất:', `${API_BASE_URL}/api/auth/logout`);
+        await axios.post(`${API_BASE_URL}/api/auth/logout`, { id: user.id });
+      }
       setUser(null);
-      navigate('/login', { replace: true });
+      localStorage.removeItem('user');
+      delete axios.defaults.headers.common['Authorization'];
+      console.log('Đăng xuất thành công');
     } catch (error) {
-      console.error('Logout failed:', error);
-      // Vẫn xóa token và đăng xuất phía client ngay cả khi request thất bại
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('email');
-      localStorage.removeItem('fullName');
-      delete axios.defaults.headers.common['Authorization'];
+      console.error('Lỗi đăng xuất:', error.response || error);
       setUser(null);
-      navigate('/login', { replace: true });
+      localStorage.removeItem('user');
+      delete axios.defaults.headers.common['Authorization'];
     }
   };
 
