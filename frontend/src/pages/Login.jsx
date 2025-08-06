@@ -20,12 +20,10 @@ const Login = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const emailInputRef = useRef(null);
 
-  // Tự động focus vào trường email khi chuyển đổi view
   useEffect(() => {
     emailInputRef.current?.focus();
   }, [isLoginView]);
 
-  // Chuyển hướng nếu đã đăng nhập
   useEffect(() => {
     if (user && !authLoading) {
       navigate('/', { replace: true });
@@ -51,7 +49,6 @@ const Login = () => {
         newErrors.confirmPassword = 'Mật khẩu và xác nhận mật khẩu không khớp';
       }
       
-      // Kiểm tra độ mạnh mật khẩu
       const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
       if (!strongPasswordRegex.test(formData.password)) {
         newErrors.password = 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt';
@@ -84,9 +81,14 @@ const Login = () => {
         setFormData({ email: formData.email, password: '', confirmPassword: '', fullName: '' });
       }
     } catch (err) {
+      console.error(isLoginView ? 'Đăng nhập thất bại:' : 'Đăng ký thất bại:', err);
       const status = err.response?.status;
-      const message = err.response?.data?.message || 'Đã có lỗi xảy ra, vui lòng thử lại';
+      let message = err.response?.data?.message || 'Đã có lỗi xảy ra, vui lòng thử lại';
       
+      if (err.message.includes('Response đăng nhập thiếu role')) {
+        message = 'Lỗi hệ thống: Dữ liệu người dùng không đầy đủ';
+      }
+
       if (status === 400) {
         if (message.includes('Email đã được sử dụng')) {
           setErrors({ email: message });
@@ -102,7 +104,6 @@ const Login = () => {
       } else {
         setErrors({ general: message });
       }
-      console.error(isLoginView ? 'Đăng nhập thất bại:' : 'Đăng ký thất bại:', err.response || err);
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +121,7 @@ const Login = () => {
   }
 
   if (user) {
-    return null;
+    return <div className="min-h-screen flex items-center justify-center">Đang chuyển hướng...</div>;
   }
 
   return (

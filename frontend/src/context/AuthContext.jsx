@@ -9,13 +9,11 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Khôi phục user từ localStorage khi khởi động
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        // Kiểm tra dữ liệu hợp lệ
         if (parsedUser.token && parsedUser.email && parsedUser.role) {
           setUser(parsedUser);
           axios.defaults.headers.common['Authorization'] = `Bearer ${parsedUser.token}`;
@@ -38,16 +36,16 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
       });
-      const { token, user: userData } = response.data;
-      // Kiểm tra xem userData có role không
-      if (!userData.role) {
-        console.warn('Response đăng nhập thiếu role:', userData);
-        userData.role = 'USER'; // Giá trị mặc định nếu thiếu role
+      const { token, id, email: userEmail, fullName, role } = response.data;
+      if (!role) {
+        console.warn('Response đăng nhập thiếu role, đặt mặc định USER');
+        role = 'USER';
       }
-      setUser({ ...userData, token });
-      localStorage.setItem('user', JSON.stringify({ ...userData, token }));
+      const userWithToken = { id, email: userEmail, fullName, role, token };
+      setUser(userWithToken);
+      localStorage.setItem('user', JSON.stringify(userWithToken));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      console.log('Đăng nhập thành công:', userData);
+      console.log('Đăng nhập thành công:', userWithToken);
     } catch (error) {
       console.error('Lỗi đăng nhập:', error.response || error);
       throw error;
@@ -64,7 +62,6 @@ export const AuthProvider = ({ children }) => {
         confirmPassword,
       });
       console.log('Đăng ký thành công:', response.data);
-      // Không tự động đăng nhập sau khi đăng ký
     } catch (error) {
       console.error('Lỗi đăng ký:', error.response || error);
       throw error;
