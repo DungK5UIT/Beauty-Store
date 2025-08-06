@@ -2,19 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ShoppingCart, Trash2, Minus, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-// --- THAY ĐỔI 1: Sử dụng context ---
 import { useAuth } from '../context/AuthContext';
 
-// URL của backend, nên được định nghĩa ở một nơi tập trung
 const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
 
-// Hàm format giá tiền
 const formatCurrency = (value) => {
   if (value == null) return '';
   return Number(value).toLocaleString('vi-VN') + ' VNĐ';
 };
 
-// Hàm debounce
 const debounce = (func, wait) => {
   let timeout;
   return (...args) => {
@@ -24,23 +20,19 @@ const debounce = (func, wait) => {
 };
 
 const Cart = () => {
-  // --- THAY ĐỔI 2: Lấy user từ context ---
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-
   const [cartItems, setCartItems] = useState([]);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true); // Thêm state loading cho toàn trang
-  const [loadingItems, setLoadingItems] = useState({}); // State loading cho từng item
+  const [loading, setLoading] = useState(true);
+  const [loadingItems, setLoadingItems] = useState({});
+  const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
-  // --- THAY ĐỔI 3: Cập nhật useEffect để phụ thuộc vào user từ context ---
   useEffect(() => {
     const fetchCart = async () => {
       if (!user) {
-        // Nếu không có user, đảm bảo giỏ hàng trống và dừng loading
         setCartItems([]);
         setLoading(false);
-        // Có thể hiển thị thông báo hoặc để trang trống
         return;
       }
 
@@ -49,20 +41,28 @@ const Cart = () => {
         const response = await axios.get(`${API_BASE_URL}/api/cart/${user.id}`);
         setCartItems(response.data);
       } catch (err) {
-        setError(err.response?.data?.message || 'Không thể tải giỏ hàng');
+        const status = err.response?.status;
+        let message = err.response?.data?.message || 'Không thể tải giỏ hàng';
+        if (status === 401) {
+          message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
+          logout();
+          navigate('/login');
+        }
+        setError(message);
+        setToast({ show: true, message, type: 'error' });
+        setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
         console.error('Fetch cart failed:', err.response || err);
       } finally {
         setLoading(false);
       }
     };
     fetchCart();
-  }, [user]); // Chạy lại mỗi khi user thay đổi
+  }, [user, logout, navigate]);
 
   const updateQuantity = async (cartItemId, newQuantity) => {
     if (!user || newQuantity < 1) return;
 
     const originalItems = [...cartItems];
-    // Optimistic UI update
     setCartItems((prevItems) =>
       prevItems.map((item) =>
         item.id === cartItemId ? { ...item, quantity: newQuantity } : item
@@ -75,28 +75,38 @@ const Cart = () => {
         cartItemId,
         quantity: newQuantity,
       });
+      setToast({ show: true, message: 'Cập nhật số lượng thành công', type: 'success' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Không thể cập nhật số lượng');
-      setCartItems(originalItems); // Rollback on error
+      const status = err.response?.status;
+      let message = err.response?.data?.message || 'Không thể cập nhật số lượng';
+      if (status === 401) {
+        message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
+        logout();
+        navigate('/login');
+      }
+      setError(message);
+      setCartItems(originalItems);
+      setToast({ show: true, message, type: 'error' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
     } finally {
       setLoadingItems((prev) => ({ ...prev, [cartItemId]: false }));
     }
   };
 
-  // Sử dụng useCallback để không tạo lại hàm debounce mỗi lần render
-  const debouncedUpdateQuantity = useCallback(debounce(updateQuantity, 500), [user, cartItems]);
+  const debouncedUpdateQuantity = useCallback(debounce(updateQuantity, 500), [user]);
 
   const increaseQuantity = (cartItemId) => {
     const item = cartItems.find((item) => item.id === cartItemId);
     if (item) {
-        debouncedUpdateQuantity(cartItemId, item.quantity + 1);
+      debouncedUpdateQuantity(cartItemId, item.quantity + 1);
     }
   };
 
   const decreaseQuantity = (cartItemId) => {
     const item = cartItems.find((item) => item.id === cartItemId);
     if (item && item.quantity > 1) {
-        debouncedUpdateQuantity(cartItemId, item.quantity - 1);
+      debouncedUpdateQuantity(cartItemId, item.quantity - 1);
     }
   };
 
@@ -104,22 +114,31 @@ const Cart = () => {
     if (!user) return;
 
     const originalItems = [...cartItems];
-    // Optimistic UI update
     setCartItems(cartItems.filter((item) => item.id !== cartItemId));
     setLoadingItems((prev) => ({ ...prev, [cartItemId]: true }));
 
     try {
       await axios.delete(`${API_BASE_URL}/api/cart/remove/${user.id}/${cartItemId}`);
+      setToast({ show: true, message: 'Xóa sản phẩm thành công', type: 'success' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Không thể xóa sản phẩm');
-      setCartItems(originalItems); // Rollback on error
+      const status = err.response?.status;
+      let message = err.response?.data?.message || 'Không thể xóa sản phẩm';
+      if (status === 401) {
+        message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
+        logout();
+        navigate('/login');
+      }
+      setError(message);
+      setCartItems(originalItems);
+      setToast({ show: true, message, type: 'error' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
     } finally {
       setLoadingItems((prev) => ({ ...prev, [cartItemId]: false }));
     }
   };
 
   const handleCheckout = () => {
-    // User đã được kiểm tra ở trên, nếu họ vào được đây nghĩa là đã đăng nhập
     navigate('/pay');
   };
 
@@ -127,28 +146,43 @@ const Cart = () => {
   const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   if (loading) {
-      return <div className="text-center py-20">Đang tải giỏ hàng...</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <svg className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Đang tải giỏ hàng...
+        </div>
+      </div>
+    );
   }
-  
+
   if (!user) {
-      return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-                  <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <ShoppingCart className="w-10 h-10 text-gray-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Giỏ hàng của bạn</h3>
-                  <p className="text-gray-500 mb-4">Vui lòng đăng nhập để xem sản phẩm trong giỏ hàng.</p>
-                  <button onClick={() => navigate('/login')} className="bg-blue-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                      Đăng nhập
-                  </button>
-              </div>
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+          <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ShoppingCart className="w-10 h-10 text-gray-400" />
           </div>
-      )
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Giỏ hàng của bạn</h3>
+          <p className="text-gray-500 mb-4">Vui lòng đăng nhập để xem sản phẩm trong giỏ hàng.</p>
+          <button onClick={() => navigate('/login')} className="bg-blue-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+            Đăng nhập
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
+      {toast.show && (
+        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
+          {toast.message}
+        </div>
+      )}
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex items-center gap-3 mb-8">
           <div className="bg-blue-600 p-3 rounded-full">

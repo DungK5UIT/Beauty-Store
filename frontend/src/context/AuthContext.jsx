@@ -1,89 +1,94 @@
-import React, { useState, useEffect, useContext, createContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-// URL của backend
-const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
+const AuthContext = createContext();
 
-// 1. Tạo Context
-const AuthContext = createContext(null);
-
-// 2. Tạo Provider Component - "Nhà cung cấp" trạng thái
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // State để kiểm tra auth ban đầu
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Kiểm tra localStorage khi app khởi động
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
-    } catch (error) {
-      console.error("Failed to parse user from localStorage", error);
-      localStorage.removeItem('user');
-    } finally {
-      setIsLoading(false); // Hoàn tất kiểm tra
+    // Kiểm tra token trong localStorage khi khởi tạo
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    const email = localStorage.getItem('email');
+    const fullName = localStorage.getItem('fullName');
+    
+    if (token && userId && email && fullName) {
+      setUser({ id: userId, email, fullName });
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
+    setLoading(false);
   }, []);
 
-  // Hàm đăng nhập
   const login = async (email, password) => {
-    // Backend đã được cập nhật để chỉ cần email và password
-    const response = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password });
-    const userData = response.data;
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
-    navigate('/'); // Tự động chuyển về trang chủ sau khi đăng nhập thành công
-    return userData;
-  };
-
-  // Hàm đăng ký
-  const register = async (fullName, email, password, confirmPassword) => {
-    const response = await axios.post(`${API_BASE_URL}/api/auth/register`, { 
-      fullName, 
-      email, 
-      password, 
-      confirmPassword,
-      rememberMe: false // Giá trị mặc định
-    });
-    return response.data;
-  };
-
-  // Hàm đăng xuất
-  const logout = async () => {
-    if (user && user.id) {
-      try {
-        await axios.post(`${API_BASE_URL}/api/auth/logout`, { id: user.id });
-      } catch (error) {
-        console.error('API logout call failed, proceeding with client-side logout.', error);
-      }
+    try {
+      const response = await axios.post('https://your-api-base-url/api/auth/login', { email, password });
+      const { id, email: userEmail, fullName, token } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('userId', id);
+      localStorage.setItem('email', userEmail);
+      localStorage.setItem('fullName', fullName);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      setUser({ id, email: userEmail, fullName });
+      navigate('/', { replace: true });
+    } catch (error) {
+      throw error;
     }
-    localStorage.removeItem('user');
-    setUser(null);
-    navigate('/');
   };
 
-  // Giá trị được cung cấp cho toàn bộ ứng dụng
-  const authContextValue = {
-    user,
-    isLoading,
-    login,
-    register,
-    logout,
+  const register = async (fullName, email, password, confirmPassword) => {
+    try {
+      const response = await axios.post('https://your-api-base-url/api/auth/register', {
+        fullName,
+        email,
+        password,
+        confirmPassword,
+      });
+      const { id, email: userEmail, fullName: userFullName, token } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('userId', id);
+      localStorage.setItem('email', userEmail);
+      localStorage.setItem('fullName', userFullName);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      setUser({ id, email: userEmail, fullName: userFullName });
+      navigate('/', { replace: true });
+    } catch (error) {
+      throw error;
+    }
   };
 
-  // Chỉ render các component con sau khi đã kiểm tra auth xong
+  const logout = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      await axios.post('https://your-api-base-url/api/auth/logout', { id: userId });
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('email');
+      localStorage.removeItem('fullName');
+      delete axios.defaults.headers.common['Authorization'];
+      setUser(null);
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Vẫn xóa token và đăng xuất phía client ngay cả khi request thất bại
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('email');
+      localStorage.removeItem('fullName');
+      delete axios.defaults.headers.common['Authorization'];
+      setUser(null);
+      navigate('/login', { replace: true });
+    }
+  };
+
   return (
-    <AuthContext.Provider value={authContextValue}>
-      {!isLoading && children}
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+      {children}
     </AuthContext.Provider>
   );
 };
 
-// 3. Tạo custom hook để sử dụng dễ dàng
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);

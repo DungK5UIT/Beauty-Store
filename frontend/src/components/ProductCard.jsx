@@ -1,27 +1,21 @@
 import React from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-// Giả sử bạn sẽ tạo file AuthContext.js như đã thảo luận
-import { useAuth } from '../context/AuthContext'; 
+import { useAuth } from '../context/AuthContext';
 
 const formatCurrency = (value) => {
   if (value == null) return '';
   return Number(value).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
 };
 
-// --- THAY ĐỔI 1: Bỏ prop `isLoggedIn` ---
 const ProductCard = ({ product, onAddToCart }) => {
-  // --- THAY ĐỔI 2: Sử dụng context và hook `useNavigate` ---
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // --- THAY ĐỔI 3: Tạo một hàm xử lý click thông minh hơn ---
   const handleAddToCartClick = () => {
-    // Nếu chưa đăng nhập, chuyển đến trang login
     if (!user) {
       navigate('/login');
     } else {
-      // Nếu đã đăng nhập, thực hiện hành động thêm vào giỏ hàng
       onAddToCart();
     }
   };
@@ -62,15 +56,12 @@ const ProductCard = ({ product, onAddToCart }) => {
           )}
         </div>
 
-        {/* --- THAY ĐỔI 4: Cập nhật nút để sử dụng hàm xử lý mới --- */}
         <button
           onClick={handleAddToCartClick}
-          // Nút sẽ không bị vô hiệu hóa nữa, nó sẽ luôn có hành động
           className="w-full flex items-center justify-center bg-gradient-to-r from-emerald-500 to-lime-400 text-white font-bold py-2.5 px-4 rounded-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg"
         >
           <ShoppingCart size={18} className="mr-2" />
-          {/* Dùng `user` từ context để quyết định văn bản trên nút */}
-          {user ? 'Thêm vào giỏ' : 'Đăng nhập để mua'}
+          {user ? 'Thêm vào giỏ hàng' : 'Đăng nhập để thêm vào giỏ'}
         </button>
       </div>
     </div>
