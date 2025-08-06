@@ -58,8 +58,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 
         <button
           onClick={handleAddToCartClick}
-          className="w-full flex items-center justify-center bg-gradient-to-r from-emerald-500 to-lime-400 text-white font-bold py-2.5 px-4 rounded-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg"
-        >
+        className="w-full flex items-center justify-center bg-gradient-to-r from-emerald-500 to-lime-400 text-white font-bold py-2.5 px-4 rounded-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none"        >
           <ShoppingCart size={18} className="mr-2" />
           {user ? 'Thêm vào giỏ hàng' : 'Đăng nhập để thêm vào giỏ'}
         </button>

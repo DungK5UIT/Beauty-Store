@@ -83,13 +83,13 @@ const Login = () => {
     } catch (err) {
       console.error(isLoginView ? 'Đăng nhập thất bại:' : 'Đăng ký thất bại:', err);
       const status = err.response?.status;
-      let message = err.response?.data?.message || 'Đã có lỗi xảy ra, vui lòng thử lại';
+      let message = err.response?.data?.message || err.message || 'Đã có lỗi xảy ra, vui lòng thử lại';
       
-      if (err.message.includes('Response đăng nhập thiếu role')) {
-        message = 'Lỗi hệ thống: Dữ liệu người dùng không đầy đủ';
-      }
-
-      if (status === 400) {
+      if (message === 'Tài khoản đang được đăng nhập ở nơi khác.') {
+        setErrors({ general: message });
+      } else if (err.message.includes('Response đăng nhập thiếu role')) {
+        setErrors({ general: 'Lỗi hệ thống: Dữ liệu người dùng không đầy đủ' });
+      } else if (status === 400) {
         if (message.includes('Email đã được sử dụng')) {
           setErrors({ email: message });
         } else if (message.includes('Mật khẩu và xác nhận mật khẩu không khớp')) {

@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE_URL ='https://deploy-backend-production-e64e.up.railway.app';
+const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -58,9 +58,16 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogoutClick = () => {
-    setIsUserMenuOpen(false);
-    logout();
+  const handleLogoutClick = async () => {
+    try {
+      setIsUserMenuOpen(false);
+      await logout();
+      setToast({ show: true, message: 'Đăng xuất thành công', type: 'success' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+    } catch (error) {
+      setToast({ show: true, message: 'Lỗi khi đăng xuất, vui lòng thử lại', type: 'error' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
+    }
   };
 
   const handleUserIconClick = () => {
@@ -74,7 +81,7 @@ const Header = () => {
   return (
     <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
       {toast.show && (
-        <div className="fixed top-20 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out">
+        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
           {toast.message}
         </div>
       )}
