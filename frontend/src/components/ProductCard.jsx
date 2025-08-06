@@ -2,7 +2,7 @@ import React from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 // Giả sử bạn sẽ tạo file AuthContext.js như đã thảo luận
-import { useAuth } from './AuthContext'; 
+import { useAuth } from '../context/AuthContext'; 
 
 const formatCurrency = (value) => {
   if (value == null) return '';

@@ -3,7 +3,7 @@ import { Search, ShoppingCart, User, ChevronDown, LogOut, UserCircle } from 'luc
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 // Giả sử bạn sẽ tạo file AuthContext.js như đã thảo luận
-import { useAuth } from './AuthContext'; 
+import { useAuth } from '../context/AuthContext'; 
 
 // URL của backend, nên được định nghĩa ở một nơi tập trung
 const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';

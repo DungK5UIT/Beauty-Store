@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, Mail, ArrowLeft } from 'lucide-react';
 // Giả sử bạn sẽ tạo file AuthContext.js như đã thảo luận
-import { useAuth } from './AuthContext'; 
+import { useAuth } from '../context/AuthContext'; 
 
 const Login= () => {
   // --- THAY ĐỔI 1: Sử dụng context ---
