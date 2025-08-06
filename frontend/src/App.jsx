@@ -7,10 +7,10 @@ import { AuthProvider } from './context/AuthContext';
 // Import các component và page
 import Header from './components/Header';
 import Footer from './components/Footer';
-import ProductPage from './pages/Product';
-import LoginPage from './pages/Login';
-import CartPage from './pages/Cart';
-import PayPage from './pages/Pay';
+import Product from './pages/Product';
+import Login from './pages/Login';
+import Cart from './pages/Cart';
+import Pay from './pages/Pay';
 
 // Component trang chủ ví dụ
 const HomePage = () => (
@@ -30,11 +30,11 @@ const App = () => {
           <Header /> 
           <main className="flex-grow">
             <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/product" element={<ProductPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/pay" element={<PayPage />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/product" element={<Product/>} />
+              <Route path="/login" element={<Login/>} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/pay" element={<Pay />} />
               {/* Thêm các route khác nếu cần */}
               <Route path="*" element={<div className="text-center p-20">404 - Trang không tồn tại</div>} />
             </Routes>
