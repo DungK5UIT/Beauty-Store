@@ -118,7 +118,8 @@ const Product = () => {
                     )}
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {/* THAY ĐỔI Ở ĐÂY: Chuyển sang 4 cột và giảm gap */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
                   {filteredProducts.length > 0 ? (
                     filteredProducts.map((product) => (
                       <ProductCard
