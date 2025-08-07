@@ -82,14 +82,14 @@ const Product = () => {
     return matchesCategory && matchesPrice;
   });
 
-  return (
+ return (
     <div className="min-h-screen bg-gray-50 relative">
       {toast.show && (
         <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
           {toast.message}
         </div>
       )}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 py-12">
         <div className="flex flex-col md:flex-row gap-8">
           <Sidebar
             selectedCategory={selectedCategory}
@@ -105,21 +105,20 @@ const Product = () => {
             ) : (
               <>
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Tất cả sản phẩm</h2>
+                  <h2 className="text-2xl font-bold text-gray-800">Khám phá sản phẩm</h2>
                   <div className="flex items-center space-x-4">
                     <p className="text-sm text-gray-600">Hiện có {filteredProducts.length} sản phẩm</p>
                     {user?.role === 'ADMIN' && (
                       <Link
                         to="/admin/add-product"
-                        className="text-sm text-white bg-pink-600 hover:bg-pink-700 px-3 py-1.5 rounded-lg transition-colors"
+                        className="text-sm text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg transition-colors"
                       >
                         Thêm sản phẩm
                       </Link>
                     )}
                   </div>
                 </div>
-                {/* THAY ĐỔI Ở ĐÂY: Chuyển sang 4 cột và giảm gap */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
                   {filteredProducts.length > 0 ? (
                     filteredProducts.map((product) => (
                       <ProductCard

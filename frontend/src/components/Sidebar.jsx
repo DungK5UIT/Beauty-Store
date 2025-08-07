@@ -5,14 +5,11 @@ import priceRanges from '../data/priceRanges.js';
 
 const Sidebar = ({ selectedCategory, onCategoryChange, selectedPriceRange, onPriceRangeChange }) => {
   return (
-    // CHANGED: Tăng w (width), thêm bo góc và shadow mềm mại hơn
-    <aside className="w-64 bg-white p-6 rounded-lg shadow-md">
-      {/* CHANGED: Tiêu đề nổi bật với màu chủ đạo */}
+    <aside className="w-72 bg-white p-6 rounded-xl shadow-lg">
       <h3 className="text-lg font-bold mb-6 flex items-center text-emerald-600">
         <Filter className="mr-2" size={24} /> BỘ LỌC SẢN PHẨM
       </h3>
 
-      {/* --- Phần Danh mục --- */}
       <div className="mb-8">
         <h4 className="font-semibold mb-3 text-gray-800">Danh mục</h4>
         <div className="space-y-2">
@@ -34,7 +31,6 @@ const Sidebar = ({ selectedCategory, onCategoryChange, selectedPriceRange, onPri
         </div>
       </div>
 
-      {/* --- Phần Khoảng giá --- */}
       <div>
         <h4 className="font-semibold mb-3 text-gray-800">Khoảng giá</h4>
         <div className="space-y-2">

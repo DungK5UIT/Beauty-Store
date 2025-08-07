@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, ShoppingCart, User, ChevronDown, LogOut, UserCircle, Phone } from 'lucide-react'; // Thêm icon Phone
+import { Search, ShoppingCart, User, ChevronDown, LogOut, UserCircle } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -12,12 +12,9 @@ const Header = () => {
   const location = useLocation();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
-  const userMenuRef = useRef(null);
-  
-  // NOTE: Phần logic useEffect và các hàm xử lý không thay đổi.
-  // Tôi đã ẩn đi cho gọn, bạn chỉ cần copy toàn bộ file là được.
   const [loadingCart, setLoadingCart] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
+  const userMenuRef = useRef(null);
 
   useEffect(() => {
     const fetchCartCount = async (userId) => {
@@ -28,18 +25,28 @@ const Header = () => {
         const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
         setCartItemCount(totalQuantity);
       } catch (error) {
+        const status = error.response?.status;
+        let message = error.response?.data?.message || 'Không thể tải giỏ hàng';
+        if (status === 401) {
+          message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
+          logout();
+          navigate('/login');
+        }
+        setToast({ show: true, message, type: 'error' });
+        setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
         setCartItemCount(0);
         console.error('Không thể lấy giỏ hàng:', error.response || error);
       } finally {
         setLoadingCart(false);
       }
     };
+
     if (user && user.id) {
       fetchCartCount(user.id);
     } else {
       setCartItemCount(0);
     }
-  }, [user, location]);
+  }, [user, location, logout, navigate]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -52,9 +59,15 @@ const Header = () => {
   }, []);
 
   const handleLogoutClick = async () => {
-    setIsUserMenuOpen(false);
-    await logout();
-    // navigate('/'); // Chuyển về trang chủ sau khi logout
+    try {
+      setIsUserMenuOpen(false);
+      await logout();
+      setToast({ show: true, message: 'Đăng xuất thành công', type: 'success' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+    } catch (error) {
+      setToast({ show: true, message: 'Lỗi khi đăng xuất, vui lòng thử lại', type: 'error' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
+    }
   };
 
   const handleUserIconClick = () => {
@@ -65,91 +78,73 @@ const Header = () => {
     }
   };
 
-
-  return (
-    // Thay đổi: Nền trắng, có đường viền mỏng bên dưới thay cho shadow
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      {/* Toast message không thay đổi */}
+return (
+    <header className="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-50">
       {toast.show && (
-        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
           {toast.message}
         </div>
       )}
-      {/* Thay đổi: Tăng padding dọc (py-6) để header cao hơn */}
-      <div className="container mx-auto px-6 py-5">
+      <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          
-          {/* Thay đổi: Logo chữ đậm, màu tối */}
-          <Link to="/" className="text-3xl font-bold text-gray-800 tracking-wider">
-            Grostore
+          <Link to="/" className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-lime-400 hover:opacity-90 transition-opacity">
+            Lumina
           </Link>
 
-          {/* Thay đổi: NavLink được tùy chỉnh lại */}
-          <nav className="hidden md:flex items-center space-x-10">
-            <NavLink to="/">Home</NavLink>
-            {/* Gộp chung Sản phẩm vào đây */}
-            <NavLink to="/product">Browse Category</NavLink> 
-            <NavLink to="/contact">Contact</NavLink>
+          <nav className="hidden md:flex items-center space-x-6">
+            <NavLink to="/">Trang chủ</NavLink>
+            <NavLink to="/product">Sản phẩm</NavLink>
+            <NavLink to="/about">Giới thiệu</NavLink>
+            <NavLink to="/contact">Liên hệ</NavLink>
             {user?.role === 'ADMIN' && (
-              <NavLink to="/admin">Admin</NavLink>
+              <NavLink to="/admin">Quản lý</NavLink>
             )}
           </nav>
 
-          {/* Thay đổi: Nhóm các icon lại, có đường kẻ dọc phân chia */}
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-5 text-gray-700">
-                <ActionButton Icon={Search} onClick={() => navigate('/search')} />
-                <ActionButton Icon={User} onClick={handleUserIconClick} />
-                {user && (
-                    <Link to="/cart" className="relative text-gray-700 hover:text-brand-orange transition-colors">
-                        <ShoppingCart size={24} strokeWidth={1.5}/>
-                        {cartItemCount > 0 && !loadingCart && (
-                        // Thay đổi: Màu của badge giỏ hàng
-                        <span className="absolute -top-2 -right-3 flex h-5 w-5 items-center justify-center rounded-full bg-brand-orange text-xs font-bold text-white">
-                            {cartItemCount}
-                        </span>
-                        )}
-                    </Link>
+          <div className="flex items-center space-x-4">
+            <ActionButton Icon={Search} onClick={() => navigate('/search')} />
+            {user && (
+              <Link to="/cart" className="relative text-gray-500 hover:text-emerald-500 transition-colors duration-300">
+                <ShoppingCart size={20} />
+                {cartItemCount > 0 && !loadingCart && (
+                  <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
+                    {cartItemCount}
+                  </span>
                 )}
-            </div>
-
-            {/* Vạch kẻ dọc */}
-            <div className="h-8 w-px bg-gray-200"></div>
-
-            {/* Thêm mục liên hệ như trong mẫu */}
-            <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 flex items-center justify-center rounded-full bg-orange-100">
-                    <Phone size={24} className="text-brand-orange"/>
-                </div>
-                <div>
-                    <p className="text-gray-500 text-sm">Call us now</p>
-                    <p className="text-gray-800 font-bold">+123 456 7890</p>
-                </div>
-            </div>
-            
-            {/* Dropdown menu của User không hiển thị trực tiếp ở đây nữa mà được quản lý bởi icon User ở trên */}
+              </Link>
+            )}
             <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={handleUserIconClick}
+                className="flex items-center space-x-2 text-gray-500 hover:text-emerald-500 transition-colors duration-300 rounded-full p-1 hover:bg-emerald-50"
+              >
+                <User size={20} />
+                <span className="hidden lg:inline font-medium text-gray-700">
+                  {user ? `Chào, ${user.fullName.split(' ')[0]}` : 'Tài khoản'}
+                </span>
+                {user && (
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`}
+                  />
+                )}
+              </button>
               {user && isUserMenuOpen && (
-                // Thay đổi: Căn chỉnh lại dropdown và màu sắc
-                <div className="absolute right-0 mt-4 w-56 bg-white rounded-md shadow-lg py-2 z-20 ring-1 ring-black ring-opacity-5">
-                  <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm text-gray-500">Welcome back,</p>
-                      <p className="text-md font-semibold text-gray-800 truncate">{user.fullName}</p>
-                  </div>
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 z-20 ring-1 ring-gray-200">
                   <Link
                     to="/profile"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-brand-orange"
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-md"
                   >
-                    <UserCircle size={18} className="mr-3" />
-                    My Account
+                    <UserCircle size={18} className="mr-3 text-emerald-500" />
+                    Tài khoản của tôi
                   </Link>
                   <button
                     onClick={handleLogoutClick}
-                    className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-brand-orange"
+                    className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-md"
                   >
-                    <LogOut size={18} className="mr-3" />
-                    Logout
+                    <LogOut size={18} className="mr-3 text-emerald-500" />
+                    Đăng xuất
                   </button>
                 </div>
               )}
@@ -161,7 +156,6 @@ const Header = () => {
   );
 };
 
-// Thay đổi: Component NavLink để loại bỏ gạch chân và đổi màu active/hover
 const NavLink = ({ to, children }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
@@ -169,21 +163,18 @@ const NavLink = ({ to, children }) => {
   return (
     <Link
       to={to}
-      // Thay đổi: Style cho NavLink, dùng màu cam làm điểm nhấn
-      className={`relative text-base font-medium transition-colors duration-300
-        ${isActive ? 'text-brand-orange' : 'text-gray-600 hover:text-brand-orange'}`}
+      className={`relative text-lg font-medium transition-colors duration-300 group ${isActive ? 'text-emerald-600' : 'text-gray-600 hover:text-emerald-600'}`}
     >
       {children}
+      <span className={`absolute -bottom-1 left-0 h-0.5 bg-emerald-500 transition-all duration-300 group-hover:w-full ${isActive ? 'w-full' : 'w-0'}`}></span>
     </Link>
   );
 };
 
-// Thay đổi: Component ActionButton để phù hợp với style mới
 const ActionButton = ({ Icon, onClick }) => (
-  <button onClick={onClick} className="text-gray-700 hover:text-brand-orange transition-colors">
-    <Icon size={24} strokeWidth={1.5} />
+  <button onClick={onClick} className="text-gray-500 hover:text-emerald-500 transition-colors duration-300">
+    <Icon size={22} />
   </button>
 );
-
 
 export default Header;
