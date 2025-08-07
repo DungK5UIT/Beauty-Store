@@ -77,21 +77,20 @@ const Header = () => {
       navigate('/login');
     }
   };
-
 return (
-    <header className="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-50">
+    <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
       {toast.show && (
-        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
+        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
           {toast.message}
         </div>
       )}
       <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-lime-400 hover:opacity-90 transition-opacity">
-            Lumina
+            BEAUTY STORE
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-8">
             <NavLink to="/">Trang chủ</NavLink>
             <NavLink to="/product">Sản phẩm</NavLink>
             <NavLink to="/about">Giới thiệu</NavLink>
@@ -101,11 +100,11 @@ return (
             )}
           </nav>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-5">
             <ActionButton Icon={Search} onClick={() => navigate('/search')} />
             {user && (
               <Link to="/cart" className="relative text-gray-500 hover:text-emerald-500 transition-colors duration-300">
-                <ShoppingCart size={20} />
+                <ShoppingCart size={22} />
                 {cartItemCount > 0 && !loadingCart && (
                   <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
                     {cartItemCount}
@@ -116,9 +115,9 @@ return (
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={handleUserIconClick}
-                className="flex items-center space-x-2 text-gray-500 hover:text-emerald-500 transition-colors duration-300 rounded-full p-1 hover:bg-emerald-50"
+                className="flex items-center space-x-2 text-gray-500 hover:text-emerald-500 transition-colors duration-300"
               >
-                <User size={20} />
+                <User size={22} />
                 <span className="hidden lg:inline font-medium text-gray-700">
                   {user ? `Chào, ${user.fullName.split(' ')[0]}` : 'Tài khoản'}
                 </span>
@@ -130,18 +129,18 @@ return (
                 )}
               </button>
               {user && isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 z-20 ring-1 ring-gray-200">
+                <div className="absolute right-0 mt-3 w-48 bg-white rounded-md shadow-lg py-1 z-20 ring-1 ring-black ring-opacity-5">
                   <Link
                     to="/profile"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-md"
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
                   >
                     <UserCircle size={18} className="mr-3 text-emerald-500" />
                     Tài khoản của tôi
                   </Link>
                   <button
                     onClick={handleLogoutClick}
-                    className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-md"
+                    className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
                   >
                     <LogOut size={18} className="mr-3 text-emerald-500" />
                     Đăng xuất

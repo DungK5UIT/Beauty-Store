@@ -20,9 +20,10 @@ const ProductCard = ({ product, onAddToCart }) => {
     }
   };
 
-return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-2 group">
+  return (
+    <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 group">
       <div className="relative">
+        {/* Giữ aspect-ratio + nền xám nhạt cho hình ảnh */}
         <div className="aspect-square w-full bg-gray-50 flex items-center justify-center p-4">
           <img
             src={product.image || '/placeholder-image.jpg'}
@@ -33,35 +34,38 @@ return (
           />
         </div>
 
+        {/* Tag sản phẩm đẹp hơn */}
         {product.tag && (
-          <span className="absolute top-2 right-2 bg-emerald-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full uppercase">
+          <span className="absolute top-3 right-3 bg-red-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">
             {product.tag}
           </span>
         )}
       </div>
 
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-800 text-sm mb-2 h-12 line-clamp-2" title={product.name}>
+      <div className="p-5">
+        <h3 className="font-semibold text-gray-800 mb-2 h-12 line-clamp-2" title={product.name}>
           {product.name}
         </h3>
 
-        <div className="mb-3">
-          <span className="text-lg font-bold text-emerald-600">
+        {/* Hiển thị giá: giá gốc và giảm giá (nếu có) */}
+        <div className="mb-4">
+          <span className="text-xl font-bold text-emerald-600">
             {formatCurrency(product.price)}
           </span>
           {product.originalPrice && (
-            <span className="text-gray-400 text-xs line-through ml-2">
+            <span className="text-gray-400 text-sm line-through ml-2">
               {formatCurrency(product.originalPrice)}
             </span>
           )}
         </div>
-        
+
+        {/* Nút gradient + icon + hover effect + disabled state */}
         <button
           onClick={handleAddToCartClick}
-          className="w-full flex items-center justify-center bg-gradient-to-r from-emerald-500 to-lime-400 text-white font-bold py-2 px-4 rounded-lg text-sm transition-all duration-300 hover:opacity-90 hover:shadow-md disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
+          className="w-full flex items-center justify-center bg-gradient-to-r from-emerald-500 to-lime-400 text-white font-bold py-2.5 px-4 rounded-lg transition-all duration-300 hover:opacity-90 hover:shadow-lg disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
         >
-          <ShoppingCart size={16} className="mr-2" />
-          {user ? 'Thêm vào giỏ' : 'Đăng nhập'}
+          <ShoppingCart size={18} className="mr-2" />
+          {user ? 'Thêm vào giỏ hàng' : 'Đăng nhập để thêm vào giỏ'}
         </button>
       </div>
     </div>
