@@ -84,11 +84,25 @@ return (
           {toast.message}
         </div>
       )}
-      <div className="container mx-auto px-6 py-4">
-        <div className="flex justify-between items-center">
-          <Link to="/" className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-lime-400 hover:opacity-90 transition-opacity">
-            BEAUTY STORE
-          </Link>
+
+       <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-center py-2 text-sm font-medium">
+          🎉 MIỄN PHÍ GIAO HÀNG cho đơn hàng từ 500K - Khuyến mãi đặc biệt cuối tuần! 🎉
+        </div>
+
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            {/* Logo */}
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-rose-400 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">✨</span>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+                  BEAUTY LUXE
+                </h1>
+                <p className="text-xs text-gray-500 font-medium">Premium Cosmetics</p>
+              </div>
+            </div>
 
           <nav className="hidden md:flex items-center space-x-8">
             <NavLink to="/">Trang chủ</NavLink>
