@@ -65,7 +65,7 @@ const ProductCard = ({ product, user, handleAddToCartClick }) => {
             className="w-full flex items-center justify-center bg-[#483C54] text-white font-bold py-2.5 px-4 rounded-lg transition-colors duration-300 hover:bg-opacity-90 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             <ShoppingCart size={18} className="mr-2" />
-            {user ? 'Thêm vào giỏ hàng' :'' }
+            {user ? 'Thêm vào giỏ hàng' : 'Vui lòng đăng nhập để mua sản phẩm'}
           </button>
         </div>
       </div>
