@@ -1,38 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
-import Sidebar from '../components/Sidebar.jsx';
-import ProductCard from '../components/ProductCard.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
+import ProductCard from '../components/ProductCard';
+import { useAuth } from '../context/AuthContext';
+import unnamedImage from '../assets/unnamed.png'
+// Định dạng tiền tệ
+const formatCurrency = (value) => {
+  if (typeof value !== 'number') return '';
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+};
 
+// URL API
 const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
 
-const Product = () => {
+const Home = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedPriceRange, setSelectedPriceRange] = useState('all');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
-  const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 12;
+  const [startIndex, setStartIndex] = useState(0); // Chỉ số bắt đầu của sản phẩm hiển thị
+  const itemsPerPage = 3; // Mỗi lần cuộn 3 sản phẩm
 
   useEffect(() => {
-    console.log('User in Product:', user); // Debug user
     const fetchProducts = async () => {
       try {
         setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/api/products/list`);
-        if (!response.data || !Array.isArray(response.data)) {
-          throw new Error('Dữ liệu sản phẩm không hợp lệ');
-        }
-        setProducts(response.data);
+        // Sắp xếp theo số lượng bán (giả sử có trường soldCount)
+        const sorted = response.data
+          .sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0))
+          .slice(0, 9); // Lấy tối đa 9 sản phẩm bán chạy nhất
+        setProducts(sorted);
       } catch (err) {
-        const message = err.response?.data?.message || 'Không thể tải dữ liệu sản phẩm';
-        setError(message);
-        console.error('Lỗi khi lấy sản phẩm:', err.response || err);
+        setError(err.response?.data?.message || 'Không thể tải sản phẩm bán chạy');
+        console.error('Lỗi khi tải sản phẩm:', err);
       } finally {
         setLoading(false);
       }
@@ -41,25 +42,9 @@ const Product = () => {
     fetchProducts();
   }, []);
 
-  const addProductToCart = async (product) => {
-    console.log('Adding product to cart:', product?.id, 'User:', user); // Debug product.id và user
-    if (!user || !user.id) {
-      setToast({
-        show: true,
-        message: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!',
-        type: 'error',
-      });
-      navigate('/login');
-      return;
-    }
-
-    if (!product || !product.id) {
-      setToast({
-        show: true,
-        message: 'Sản phẩm không hợp lệ!',
-        type: 'error',
-      });
-      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  const handleAddToCart = async (product) => {
+    if (!user) {
+      window.location.href = '/login';
       return;
     }
 
@@ -68,136 +53,180 @@ const Product = () => {
         productId: product.id,
         quantity: 1,
       });
-
-      setToast({
-        show: true,
-        message: `${product.name} đã được thêm vào giỏ hàng!`,
-        type: 'success',
-      });
-      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+      alert(`${product.name} đã được thêm vào giỏ hàng!`);
     } catch (err) {
       const status = err.response?.status;
-      let message = err.response?.data?.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng!';
+      let message = 'Có lỗi xảy ra khi thêm vào giỏ hàng!';
       if (status === 401) {
         message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
-        navigate('/login');
+        window.location.href = '/login';
       } else if (status === 404) {
         message = 'Sản phẩm không tồn tại.';
       }
-      setToast({ show: true, message, type: 'error' });
-      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
-      console.error('Lỗi khi thêm vào giỏ hàng:', err.response || err);
+      alert(message);
     }
   };
 
-  const filteredProducts = products.filter((product) => {
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    const price = product.price;
-    let matchesPrice = true;
-
-    if (selectedPriceRange !== 'all') {
-      if (selectedPriceRange === 'under500k') {
-        matchesPrice = price < 500000;
-      } else if (selectedPriceRange === '500k-1m') {
-        matchesPrice = price >= 500000 && price <= 1000000;
-      } else if (selectedPriceRange === 'over1m') {
-        matchesPrice = price > 1000000;
-      }
-    }
-
-    return matchesCategory && matchesPrice;
-  });
-
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-    window.scrollTo(0, 0);
+  // Xử lý nút điều hướng
+  const handlePrev = () => {
+    setStartIndex((prev) => Math.max(prev - itemsPerPage, 0));
   };
+
+  const handleNext = () => {
+    setStartIndex((prev) => Math.min(prev + itemsPerPage, products.length - itemsPerPage));
+  };
+
+  // Lấy sản phẩm hiện tại để hiển thị (3 sản phẩm mỗi lần)
+  const displayedProducts = products.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="min-h-screen bg-gray-50 relative">
-      {toast.show && (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Hero Section */}
+      <div className="relative h-[50vh] w-full">
         <div
-          className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${
-            toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
-          }`}
-        >
-          {toast.message}
-        </div>
-      )}
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          <Sidebar
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            selectedPriceRange={selectedPriceRange}
-            onPriceRangeChange={setSelectedPriceRange}
-          />
-          <main className="flex-1">
-            {loading ? (
-              <p className="text-center text-gray-600 mt-10">Đang tải sản phẩm...</p>
-            ) : error ? (
-              <p className="text-center text-red-500 mt-10">{error}</p>
-            ) : (
-              <>
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Tất cả sản phẩm</h2>
-                  <div className="flex items-center space-x-4">
-                    <p className="text-sm text-gray-600">Hiện có {filteredProducts.length} sản phẩm</p>
-                    {user?.role === 'ADMIN' && (
-                      <Link
-                        to="/admin/add-product"
-                        className="text-sm text-white bg-pink-600 hover:bg-pink-700 px-3 py-1.5 rounded-lg transition-colors"
-                      >
-                        Thêm sản phẩm
-                      </Link>
-                    )}
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  {currentProducts.length > 0 ? (
-                    currentProducts.map((product) => (
-                      <ProductCard
-                        key={product.id}
-                        product={product}
-                        user={user}
-                        handleAddToCartClick={() => addProductToCart(product)}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-center text-gray-600 col-span-full mt-10">
-                      Không có sản phẩm nào phù hợp.
-                    </p>
-                  )}
-                </div>
-                {totalPages > 1 && (
-                  <div className="flex justify-center space-x-2 mt-6">
-                    {Array.from({ length: totalPages }, (_, index) => (
-                      <button
-                        key={index + 1}
-                        onClick={() => handlePageChange(index + 1)}
-                        className={`px-4 py-2 rounded-lg ${
-                          currentPage === index + 1
-                            ? 'bg-pink-600 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        } transition-colors`}
-                      >
-                        {index + 1}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </main>
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2080')`,
+          }}
+        ></div>
+
+        <div className="relative z-10 flex flex-col items-start justify-center h-full w-[40%] text-white px-4 sm:px-6 lg:px-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 drop-shadow-lg">
+            Khám Phá Vẻ Đẹp Tự Nhiên
+          </h1>
+          <p className="text-sm sm:text-base lg:text-lg mb-4 max-w-xs drop-shadow-md">
+            Nâng niu làn da của bạn với các sản phẩm mỹ phẩm cao cấp
+          </p>
+          <Link
+            to="/product"
+            className="inline-block bg-white hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-lg transition-colors duration-300"
+          >
+            Mua sắm ngay
+          </Link>
         </div>
       </div>
+
+      {/* Banner Thông Điệp */}
+      <div className="bg-[#EEF4D5] flex items-center justify-between px-20 h-[10vh] w-full text-lg font-semibold text-gray-700 tracking-wider">
+        <span>✦ AN TOÀN & LÀNH TÍNH</span>
+        <span>✦ BAO BÌ THÂN THIỆN MÔI TRƯỜNG</span>
+        <span>✦ CÔNG THỨC ĐỘC QUYỀN</span>
+        <span>✦ NGUYÊN LIỆU CAO CẤP</span>
+      </div>
+
+      {/* Best Sellers Section */}
+      <section className="py-12 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">Khám phá những sản phẩm bán chạy nhất</h2>
+            <div className="flex space-x-4">
+              <button
+                onClick={handlePrev}
+                disabled={startIndex === 0}
+                className={`w-10 h-10 flex items-center justify-center rounded-full bụg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
+                aria-label="Sản phẩm trước"
+              >
+                ←
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={startIndex >= products.length - itemsPerPage}
+                className={`w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
+                aria-label="Sản phẩm tiếp theo"
+              >
+                →
+              </button>
+            </div>
+          </div>
+
+          {loading ? (
+            <p className="text-center text-gray-600">Đang tải sản phẩm...</p>
+          ) : error ? (
+            <p className="text-center text-red-500">{error}</p>
+          ) : products.length === 0 ? (
+            <p className="text-center text-gray-600">Hiện chưa có sản phẩm bán chạy nào.</p>
+          ) : (
+            <div className="flex space-x-6 justify-center">
+              {displayedProducts.map((product) => (
+                <div key={product.id} className="flex-shrink-0 w-64">
+                  <ProductCard
+                    product={product}
+                    user={user}
+                    handleAddToCartClick={() => handleAddToCart(product)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+
+   <div className="min-h-screen flex" style={{
+    }}>
+      {/* Phần bên trái - Ảnh sản phẩm */}
+      <div 
+        className="flex-1 flex items-center justify-center p-16 relative overflow-hidden product-showcase"
+        style={{
+        backgroundImage: `url(${unnamedImage})`, 
+        backgroundSize: 'cover',   
+        backgroundPosition: 'center', 
+        backgroundRepeat: 'no-repeat', 
+        }}
+      >
+      </div>
+
+      {/* Phần bên phải - Nội dung */}
+      <div 
+        className="flex-1 flex flex-col justify-center px-16 py-20 text-white relative"
+        style={{
+          background: '#3c3c5a'
+        }}
+      >
+
+        <div className="relative z-10 max-w-md ml-10">
+          {/* Tag */}
+          <div 
+            className="text-xs uppercase tracking-widest mb-8 font-medium"
+            style={{ color: '#b8a082', letterSpacing: '2px' }}
+          >
+            Quà Tặng Được Chọn Lọc Kỹ Càng
+          </div>
+
+          {/* Main title */}
+          <h1 
+            className="text-5xl font-light leading-tight mb-10"
+            style={{
+              background: 'linear-gradient(135deg, #ffffff 0%, #e8d5c4 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
+            Món Quà Làm Đẹp,<br />
+            Cử Chỉ Tình Yêu
+          </h1>
+
+          {/* Description */}
+          <p className="text-lg leading-relaxed mb-12 max-w-96" style={{ color: 'rgba(255,255,255,0.8)' }}>
+            Làm hài lòng những người thân yêu với những món quà làm đẹp vượt thời gian mà họ sẽ yêu thích. 
+            Ăn mừng những khoảnh khắc trong cuộc sống với những sản phẩm làm đẹp cao cấp, 
+            được gói ghém hoàn hảo và sẵn sàng làm vui lòng những người thân yêu của bạn.
+          </p>
+
+          {/* CTA Button */}
+          <Link to ="/product" 
+            className="bg-white text-purple-800 px-10 py-5 rounded-full text-sm font-semibold uppercase tracking-wide transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 hover:bg-gray-100"
+            style={{ color: '#2d2d4a' }}
+          >
+            Mua Quà Tặng
+          </Link>
+        </div>
+      </div>
+    </div>
+
     </div>
   );
 };
 
-export default Product;
+export default Home;

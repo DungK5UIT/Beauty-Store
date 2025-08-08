@@ -15,6 +15,7 @@ const Product = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 12;
 
@@ -38,7 +39,7 @@ const Product = () => {
 
   const handleAddToCart = async (product) => {
     if (!user) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 
@@ -54,18 +55,30 @@ const Product = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert(`${product.name} đã được thêm vào giỏ hàng!`);
+      setToast({ 
+        show: true, 
+        message: `${product.name} đã được thêm vào giỏ hàng!`, 
+        type: 'success' 
+      });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
     } catch (err) {
       const status = err.response?.status;
-      let message = 'Có lỗi xảy ra khi thêm vào giỏ hàng!';
+      let message = err.response?.data?.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng!';
       
       if (status === 401) {
         message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
-        window.location.href = '/login';
+        navigate('/login');
       } else if (status === 404) {
         message = 'Sản phẩm không tồn tại.';
       }
-      alert(message);
+      
+      setToast({ 
+        show: true, 
+        message, 
+        type: 'error' 
+      });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+      console.error('Lỗi khi thêm vào giỏ hàng:', err.response || err);
     }
   };
 
@@ -98,7 +111,15 @@ const Product = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
+      {toast.show && (
+        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${
+          toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+        }`}>
+          {toast.message}
+        </div>
+      )}
+      
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-8">
           <Sidebar
