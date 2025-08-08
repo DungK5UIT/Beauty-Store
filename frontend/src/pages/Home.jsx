@@ -166,15 +166,6 @@ const Home = () => {
             </div>
           )}
 
-          {/* Nút Xem tất cả */}
-          <div className="text-center mt-10">
-            <Link
-              to="/products"
-              className="inline-block bg-gray-800 text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Xem tất cả sản phẩm
-            </Link>
-          </div>
         </div>
       </section>
     </div>
