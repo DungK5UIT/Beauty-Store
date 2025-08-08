@@ -5,7 +5,6 @@ import Sidebar from '../components/Sidebar.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
-// Sử dụng biến môi trường hoặc fallback
 const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
 
 const Product = () => {
@@ -18,7 +17,7 @@ const Product = () => {
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 12; // 4 products per row × 3 rows
+  const productsPerPage = 12;
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -84,16 +83,14 @@ const Product = () => {
     return matchesCategory && matchesPrice;
   });
 
-  // Calculate pagination
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
 
-  // Handle page change
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
-    window.scrollTo(0, 0); // Scroll to top when changing pages
+    window.scrollTo(0, 0);
   };
 
   return (
@@ -138,7 +135,9 @@ const Product = () => {
                       <ProductCard
                         key={product.id}
                         product={product}
-                    handleAddToCartClick={() => handleAddToCart(product)}                      />
+                        user={user} // Thêm prop user
+                        onAddToCart={() => addProductToCart(product)}
+                      />
                     ))
                   ) : (
                     <p className="text-center text-gray-600 col-span-full mt-10">Không có sản phẩm nào phù hợp.</p>
