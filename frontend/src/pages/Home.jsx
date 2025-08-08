@@ -146,9 +146,9 @@ const Home = () => {
           ) : products.length === 0 ? (
             <p className="text-center text-gray-600">Hiện chưa có sản phẩm bán chạy nào.</p>
           ) : (
-          <div className="flex overflow-x-auto space-x-6 pb-6">
-              {products.map((product) => (
-                <div key={product.id} className="flex-shrink-0 w-64">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedProducts.map((product) => (
+                <div key={product.id} className="w-full">
                   <ProductCard
                     product={product}
                     user={user}
@@ -158,8 +158,6 @@ const Home = () => {
               ))}
             </div>
           )}
-
-         
         </div>
       </section>
     </div>
