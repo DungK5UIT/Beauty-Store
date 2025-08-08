@@ -138,8 +138,7 @@ const Product = () => {
                       <ProductCard
                         key={product.id}
                         product={product}
-                        onAddToCart={() => addProductToCart(product)}
-                      />
+                    handleAddToCartClick={() => handleAddToCart(product)}                      />
                     ))
                   ) : (
                     <p className="text-center text-gray-600 col-span-full mt-10">Không có sản phẩm nào phù hợp.</p>
