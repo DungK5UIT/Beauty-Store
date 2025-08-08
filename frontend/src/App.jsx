@@ -7,7 +7,7 @@ import Product from './pages/Product';
 import Login from './pages/Login';
 import Cart from './pages/Cart';
 import Pay from './pages/Pay';
-//import Home from './pages/Home';
+import Home from './pages/Home';
 const App = () => {
   return (
     <AuthProvider>
@@ -15,7 +15,7 @@ const App = () => {
         <Header /> 
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<Product />} /> {/* Thêm route cho trang chủ */}
+            <Route path="/" element={<Home />} /> {/* Thêm route cho trang chủ */}
             <Route path="/product" element={<Product />} />
             <Route path="/login" element={<Login />} />
             <Route path="/cart" element={<Cart />} />
