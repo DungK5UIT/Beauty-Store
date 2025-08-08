@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ProductCard from '../components/ProductCard';
 import { useAuth } from '../context/AuthContext';
 import unnamedImage from '../assets/unnamed.png';
-import { useNavigate, Link } from 'react-router-dom';
 
-// Định dạng tiền tệ
+// Constants
+const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
+
+// Utility function to format currency
 const formatCurrency = (value) => {
   if (typeof value !== 'number') return '';
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
 };
-
-// URL API
-const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
 
 const Home = () => {
   const { user } = useAuth();
@@ -25,6 +24,7 @@ const Home = () => {
   const itemsPerPage = 3;
   const navigate = useNavigate();
 
+  // Fetch best-selling products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -43,8 +43,9 @@ const Home = () => {
     };
 
     fetchProducts();
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
+  // Handle adding product to cart
   const handleAddToCart = async (product) => {
     if (!user) {
       navigate('/login');
@@ -63,7 +64,7 @@ const Home = () => {
       let message = err.response?.data?.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng!';
       if (status === 401) {
         message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
-      navigate('/login');
+        navigate('/login');
       } else if (status === 404) {
         message = 'Sản phẩm không tồn tại.';
       }
@@ -73,6 +74,7 @@ const Home = () => {
     }
   };
 
+  // Carousel navigation
   const handlePrev = () => {
     setStartIndex((prev) => Math.max(prev - itemsPerPage, 0));
   };
@@ -85,6 +87,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Toast Notification */}
       {toast.show && (
         <div
           className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${
@@ -103,7 +106,6 @@ const Home = () => {
             backgroundImage: `url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2080')`,
           }}
         ></div>
-
         <div className="relative z-10 flex flex-col items-start justify-center h-full w-[40%] text-white px-4 sm:px-6 lg:px-8">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 drop-shadow-lg">
             Khám Phá Vẻ Đẹp Tự Nhiên
@@ -120,7 +122,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Banner Thông Điệp */}
+      {/* Banner Section */}
       <div className="bg-[#EEF4D5] flex items-center justify-between px-20 h-[10vh] w-full text-lg font-semibold text-gray-700 tracking-wider">
         <span>✦ AN TOÀN & LÀNH TÍNH</span>
         <span>✦ BAO BÌ THÂN THIỆN MÔI TRƯỜNG</span>
@@ -138,7 +140,7 @@ const Home = () => {
                 onClick={handlePrev}
                 disabled={startIndex === 0}
                 className={`w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
-                aria-label="Sản phẩm trước"
+                aria-label="Xem sản phẩm trước đó"
               >
                 ←
               </button>
@@ -146,7 +148,7 @@ const Home = () => {
                 onClick={handleNext}
                 disabled={startIndex >= products.length - itemsPerPage}
                 className={`w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
-                aria-label="Sản phẩm tiếp theo"
+                aria-label="Xem sản phẩm tiếp theo"
               >
                 →
               </button>
@@ -186,7 +188,6 @@ const Home = () => {
             backgroundRepeat: 'no-repeat',
           }}
         ></div>
-
         <div
           className="flex-1 flex flex-col justify-center px-16 py-20 text-white relative"
           style={{ background: '#3c3c5a' }}
