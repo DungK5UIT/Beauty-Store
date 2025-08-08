@@ -17,6 +17,8 @@ const Product = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 12; // 4 products per row × 3 rows
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -82,6 +84,18 @@ const Product = () => {
     return matchesCategory && matchesPrice;
   });
 
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo(0, 0); // Scroll to top when changing pages
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 relative">
       {toast.show && (
@@ -118,9 +132,9 @@ const Product = () => {
                     )}
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  {filteredProducts.length > 0 ? (
-                    filteredProducts.map((product) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  {currentProducts.length > 0 ? (
+                    currentProducts.map((product) => (
                       <ProductCard
                         key={product.id}
                         product={product}
@@ -131,6 +145,23 @@ const Product = () => {
                     <p className="text-center text-gray-600 col-span-full mt-10">Không có sản phẩm nào phù hợp.</p>
                   )}
                 </div>
+                {totalPages > 1 && (
+                  <div className="flex justify-center space-x-2 mt-6">
+                    {Array.from({ length: totalPages }, (_, index) => (
+                      <button
+                        key={index + 1}
+                        onClick={() => handlePageChange(index + 1)}
+                        className={`px-4 py-2 rounded-lg ${
+                          currentPage === index + 1
+                            ? 'bg-pink-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        } transition-colors`}
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </>
             )}
           </main>

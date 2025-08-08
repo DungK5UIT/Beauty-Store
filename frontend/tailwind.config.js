@@ -6,9 +6,6 @@ export default {
   ],
   theme: {
     extend: {
-       colors: {
-        'brand-orange': '#F59E0B', // Đây là một màu cam-vàng
-      },
       // Thêm keyframes và animation cho hiệu ứng thông báo (Toast)
       keyframes: {
         'toast-in': {
