@@ -117,9 +117,27 @@ const Home = () => {
       {/* Best Sellers Section */}
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">
-            Khám phá những sản phẩm bán chạy nhất
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">Khám phá những sản phẩm bán chạy nhất</h2>
+            <div className="flex space-x-4">
+              <button
+                onClick={handlePrev}
+                disabled={startIndex === 0}
+                className={`w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
+                aria-label="Sản phẩm trước"
+              >
+                ←
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={startIndex >= products.length - itemsPerPage}
+                className={`w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
+                aria-label="Sản phẩm tiếp theo"
+              >
+                →
+              </button>
+            </div>
+          </div>
 
           {loading ? (
             <p className="text-center text-gray-600">Đang tải sản phẩm...</p>
@@ -128,44 +146,28 @@ const Home = () => {
           ) : products.length === 0 ? (
             <p className="text-center text-gray-600">Hiện chưa có sản phẩm bán chạy nào.</p>
           ) : (
-            <div className="relative">
-              {/* Nút Prev */}
-              <button
-                onClick={handlePrev}
-                disabled={startIndex === 0}
-                className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
-                aria-label="Sản phẩm trước"
-              >
-                ←
-              </button>
-
-              {/* Danh sách sản phẩm */}
-              <div className="flex justify-center overflow-hidden px-12">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 transition-transform duration-500 ease-in-out" style={{ transform: `translateX(0)` }}>
-                  {displayedProducts.map((product) => (
-                    <div key={product.id} className="flex-shrink-0">
-                      <ProductCard
-                        product={product}
-                        user={user}
-                        handleAddToCartClick={() => handleAddToCart(product)}
-                      />
-                    </div>
-                  ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {displayedProducts.map((product) => (
+                <div key={product.id} className="flex-shrink-0">
+                  <ProductCard
+                    product={product}
+                    user={user}
+                    handleAddToCartClick={() => handleAddToCart(product)}
+                  />
                 </div>
-              </div>
-
-              {/* Nút Next */}
-              <button
-                onClick={handleNext}
-                disabled={startIndex >= products.length - itemsPerPage}
-                className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
-                aria-label="Sản phẩm tiếp theo"
-              >
-                →
-              </button>
+              ))}
             </div>
           )}
 
+          {/* Nút Xem tất cả */}
+          <div className="text-center mt-10">
+            <Link
+              to="/products"
+              className="inline-block bg-gray-800 text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Xem tất cả sản phẩm
+            </Link>
+          </div>
         </div>
       </section>
     </div>
