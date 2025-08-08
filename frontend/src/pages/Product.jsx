@@ -20,6 +20,7 @@ const Product = () => {
   const productsPerPage = 12;
 
   useEffect(() => {
+    console.log('User in Product:', user); // Debug user
     const fetchProducts = async () => {
       try {
         setLoading(true);
@@ -38,16 +39,24 @@ const Product = () => {
   }, []);
 
   const addProductToCart = async (product) => {
+    console.log('Adding product to cart:', product.id, 'User:', user); // Debug product.id và user
     if (!user) {
       navigate('/login');
       return;
     }
 
     try {
-      await axios.post(`${API_BASE_URL}/api/cart/add/${user.id}`, {
-        productId: product.id,
-        quantity: 1,
-      });
+      const token = localStorage.getItem('token'); // Lấy token từ localStorage
+      await axios.post(
+        `${API_BASE_URL}/api/cart/add/${user.id}`,
+        {
+          productId: product.id,
+          quantity: 1,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }, // Thêm token vào header
+        }
+      );
       setToast({ show: true, message: `${product.name} đã được thêm vào giỏ hàng!`, type: 'success' });
       setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
     } catch (err) {
@@ -135,7 +144,7 @@ const Product = () => {
                       <ProductCard
                         key={product.id}
                         product={product}
-                        user={user} // Thêm prop user
+                        user={user}
                         onAddToCart={() => addProductToCart(product)}
                       />
                     ))
