@@ -185,7 +185,7 @@ const Cart = () => {
       )}
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex items-center gap-3 mb-8">
-          <div className="bg-blue-600 p-3 rounded-full">
+          <div className="bg-[#483C54] p-3 rounded-full">
             <ShoppingCart className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -224,7 +224,7 @@ const Cart = () => {
                         {item.product.name}
                       </h3>
                       <div className="flex items-center justify-between">
-                        <div className="text-2xl font-bold text-blue-600">
+                        <div className="text-2xl font-bold [#483C54]">
                           {formatCurrency(item.price * item.quantity)}
                         </div>
                         <div className="flex items-center gap-3">
@@ -283,13 +283,13 @@ const Cart = () => {
                   <div className="border-t border-gray-200 pt-4 mt-4">
                     <div className="flex justify-between text-xl font-bold text-gray-900">
                       <span>Tổng cộng</span>
-                      <span className="text-blue-600">{formatCurrency(totalAmount)}</span>
+                      <span className="text-[#483C54]">{formatCurrency(totalAmount)}</span>
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={handleCheckout}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-[#483C54] text-white py-4 rounded-xl font-semibold "
                   disabled={Object.values(loadingItems).some((loading) => loading) || cartItems.length === 0}
                 >
                   Mua ngay
