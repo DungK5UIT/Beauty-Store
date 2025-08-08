@@ -20,14 +20,10 @@ const Product = () => {
   const productsPerPage = 12;
 
   useEffect(() => {
-    console.log('User in Product:', user); // Debug user
     const fetchProducts = async () => {
       try {
         setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/api/products/list`);
-        if (!response.data || !Array.isArray(response.data)) {
-          throw new Error('Dữ liệu sản phẩm không hợp lệ');
-        }
         setProducts(response.data);
       } catch (err) {
         const message = err.response?.data?.message || 'Không thể tải dữ liệu sản phẩm';
@@ -41,40 +37,14 @@ const Product = () => {
     fetchProducts();
   }, []);
 
-  const addProductToCart = async (product) => {
-    console.log('Adding product to cart:', product?.id, 'User:', user); // Debug product.id và user
-    if (!user || !user.id) {
-      setToast({
-        show: true,
-        message: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!',
-        type: 'error',
-      });
+  const handleAddToCart = async (product) => {
+    if (!user) {
       navigate('/login');
-      return;
-    }
-
-    if (!product || !product.id) {
-      setToast({
-        show: true,
-        message: 'Sản phẩm không hợp lệ!',
-        type: 'error',
-      });
-      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
-        setToast({
-          show: true,
-          message: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại!',
-          type: 'error',
-        });
-        navigate('/login');
-        return;
-      }
-
       await axios.post(
         `${API_BASE_URL}/api/cart/add/${user.id}`,
         {
@@ -85,23 +55,28 @@ const Product = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
-      setToast({
-        show: true,
-        message: `${product.name} đã được thêm vào giỏ hàng!`,
-        type: 'success',
+      setToast({ 
+        show: true, 
+        message: `${product.name} đã được thêm vào giỏ hàng!`, 
+        type: 'success' 
       });
       setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
     } catch (err) {
       const status = err.response?.status;
       let message = err.response?.data?.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng!';
+      
       if (status === 401) {
         message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
         navigate('/login');
       } else if (status === 404) {
         message = 'Sản phẩm không tồn tại.';
       }
-      setToast({ show: true, message, type: 'error' });
+      
+      setToast({ 
+        show: true, 
+        message, 
+        type: 'error' 
+      });
       setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
       console.error('Lỗi khi thêm vào giỏ hàng:', err.response || err);
     }
@@ -138,14 +113,13 @@ const Product = () => {
   return (
     <div className="min-h-screen bg-gray-50 relative">
       {toast.show && (
-        <div
-          className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${
-            toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
-          }`}
-        >
+        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${
+          toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+        }`}>
           {toast.message}
         </div>
       )}
+      
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-8">
           <Sidebar
@@ -154,6 +128,7 @@ const Product = () => {
             selectedPriceRange={selectedPriceRange}
             onPriceRangeChange={setSelectedPriceRange}
           />
+          
           <main className="flex-1">
             {loading ? (
               <p className="text-center text-gray-600 mt-10">Đang tải sản phẩm...</p>
@@ -168,13 +143,14 @@ const Product = () => {
                     {user?.role === 'ADMIN' && (
                       <Link
                         to="/admin/add-product"
-                        className="text-sm text-white bg-pink-600 hover:bg-pink-700 px-3 py-1.5 rounded-lg transition-colors"
+                        className="text-sm text-white bg-[#483C54] hover:bg-[#3a3045] px-3 py-1.5 rounded-lg transition-colors"
                       >
                         Thêm sản phẩm
                       </Link>
                     )}
                   </div>
                 </div>
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                   {currentProducts.length > 0 ? (
                     currentProducts.map((product) => (
@@ -182,7 +158,7 @@ const Product = () => {
                         key={product.id}
                         product={product}
                         user={user}
-                        handleAddToCartClick={() => addProductToCart(product)} // Sửa tên hàm
+                        handleAddToCartClick={() => handleAddToCart(product)}
                       />
                     ))
                   ) : (
@@ -191,6 +167,7 @@ const Product = () => {
                     </p>
                   )}
                 </div>
+                
                 {totalPages > 1 && (
                   <div className="flex justify-center space-x-2 mt-6">
                     {Array.from({ length: totalPages }, (_, index) => (
@@ -199,7 +176,7 @@ const Product = () => {
                         onClick={() => handlePageChange(index + 1)}
                         className={`px-4 py-2 rounded-lg ${
                           currentPage === index + 1
-                            ? 'bg-pink-600 text-white'
+                            ? 'bg-[#483C54] text-white'
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         } transition-colors`}
                       >
