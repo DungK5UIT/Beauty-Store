@@ -329,14 +329,14 @@ const Pay = () => {
                 </div>
                 <div className="flex justify-between text-xl font-bold text-gray-900 border-t pt-3">
                   <span>Tổng cộng</span>
-                  <span className="text-blue-600">{formatCurrency(total)}</span>
+                  <span className="text-[#483C54]">{formatCurrency(total)}</span>
                 </div>
               </div>
 
               {/* Place Order Button */}
               <button
                 onClick={handlePlaceOrder}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="w-full bg-[#483C54]"
               >
                 Đặt hàng ngay
               </button>
