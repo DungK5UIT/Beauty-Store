@@ -45,7 +45,7 @@ const Home = () => {
 
   const handleAddToCart = async (product) => {
     if (!user) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 
@@ -61,7 +61,7 @@ const Home = () => {
       let message = err.response?.data?.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng!';
       if (status === 401) {
         message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
-        window.location.href = '/login';
+      navigate('/login');
       } else if (status === 404) {
         message = 'Sản phẩm không tồn tại.';
       }
