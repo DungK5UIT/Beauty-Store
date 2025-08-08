@@ -82,10 +82,14 @@ const Product = () => {
     return matchesCategory && matchesPrice;
   });
 
- return (
+  return (
     <div className="min-h-screen bg-gray-50 relative">
       {toast.show && (
-        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
+        <div
+          className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${
+            toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+          }`}
+        >
           {toast.message}
         </div>
       )}
@@ -124,11 +128,14 @@ const Product = () => {
                       <ProductCard
                         key={product.id}
                         product={product}
+                        user={user}
                         onAddToCart={() => addProductToCart(product)}
                       />
                     ))
                   ) : (
-                    <p className="text-center text-gray-600 col-span-full mt-10">Không có sản phẩm nào phù hợp.</p>
+                    <p className="text-center text-gray-600 col-span-full mt-10">
+                      Không có sản phẩm nào phù hợp.
+                    </p>
                   )}
                 </div>
               </>
