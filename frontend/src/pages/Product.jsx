@@ -25,6 +25,9 @@ const Product = () => {
       try {
         setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/api/products/list`);
+        if (!response.data || !Array.isArray(response.data)) {
+          throw new Error('Dữ liệu sản phẩm không hợp lệ');
+        }
         setProducts(response.data);
       } catch (err) {
         const message = err.response?.data?.message || 'Không thể tải dữ liệu sản phẩm';
@@ -39,14 +42,39 @@ const Product = () => {
   }, []);
 
   const addProductToCart = async (product) => {
-    console.log('Adding product to cart:', product.id, 'User:', user); // Debug product.id và user
-    if (!user) {
+    console.log('Adding product to cart:', product?.id, 'User:', user); // Debug product.id và user
+    if (!user || !user.id) {
+      setToast({
+        show: true,
+        message: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!',
+        type: 'error',
+      });
       navigate('/login');
       return;
     }
 
+    if (!product || !product.id) {
+      setToast({
+        show: true,
+        message: 'Sản phẩm không hợp lệ!',
+        type: 'error',
+      });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('token'); // Lấy token từ localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setToast({
+          show: true,
+          message: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại!',
+          type: 'error',
+        });
+        navigate('/login');
+        return;
+      }
+
       await axios.post(
         `${API_BASE_URL}/api/cart/add/${user.id}`,
         {
@@ -54,10 +82,15 @@ const Product = () => {
           quantity: 1,
         },
         {
-          headers: { Authorization: `Bearer ${token}` }, // Thêm token vào header
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setToast({ show: true, message: `${product.name} đã được thêm vào giỏ hàng!`, type: 'success' });
+
+      setToast({
+        show: true,
+        message: `${product.name} đã được thêm vào giỏ hàng!`,
+        type: 'success',
+      });
       setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
     } catch (err) {
       const status = err.response?.status;
@@ -105,7 +138,11 @@ const Product = () => {
   return (
     <div className="min-h-screen bg-gray-50 relative">
       {toast.show && (
-        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
+        <div
+          className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${
+            toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+          }`}
+        >
           {toast.message}
         </div>
       )}
@@ -145,12 +182,13 @@ const Product = () => {
                         key={product.id}
                         product={product}
                         user={user}
-                        handleAddToCartClick={() => handleAddToCart(product)}
-
+                        handleAddToCartClick={() => addProductToCart(product)} // Sửa tên hàm
                       />
                     ))
                   ) : (
-                    <p className="text-center text-gray-600 col-span-full mt-10">Không có sản phẩm nào phù hợp.</p>
+                    <p className="text-center text-gray-600 col-span-full mt-10">
+                      Không có sản phẩm nào phù hợp.
+                    </p>
                   )}
                 </div>
                 {totalPages > 1 && (
