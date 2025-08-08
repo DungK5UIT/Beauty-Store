@@ -77,7 +77,7 @@ const Home = () => {
   };
 
   // Lấy sản phẩm hiện tại để hiển thị (3 sản phẩm mỗi lần)
-  const displayedProducts = products.slice(startIndex, startIndex + itemsPerPage * 3);
+  const displayedProducts = products.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -123,7 +123,7 @@ const Home = () => {
               <button
                 onClick={handlePrev}
                 disabled={startIndex === 0}
-                className={`w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
+                className={`w-10 h-10 flex items-center justify-center rounded-full bụg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
                 aria-label="Sản phẩm trước"
               >
                 ←
@@ -146,7 +146,7 @@ const Home = () => {
           ) : products.length === 0 ? (
             <p className="text-center text-gray-600">Hiện chưa có sản phẩm bán chạy nào.</p>
           ) : (
-            <div className="flex flex-wrap gap-6">
+            <div className="flex space-x-6 justify-center">
               {displayedProducts.map((product) => (
                 <div key={product.id} className="flex-shrink-0 w-64">
                   <ProductCard
