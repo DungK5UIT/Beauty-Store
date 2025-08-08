@@ -146,9 +146,9 @@ const Home = () => {
           ) : products.length === 0 ? (
             <p className="text-center text-gray-600">Hiện chưa có sản phẩm bán chạy nào.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {displayedProducts.map((product) => (
-                <div key={product.id} className="flex-shrink-0">
+          <div className="flex overflow-x-auto space-x-6 pb-6">
+              {products.map((product) => (
+                <div key={product.id} className="flex-shrink-0 w-64">
                   <ProductCard
                     product={product}
                     user={user}
@@ -159,15 +159,7 @@ const Home = () => {
             </div>
           )}
 
-          {/* Nút Xem tất cả */}
-          <div className="text-center mt-10">
-            <Link
-              to="/products"
-              className="inline-block bg-gray-800 text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Xem tất cả sản phẩm
-            </Link>
-          </div>
+         
         </div>
       </section>
     </div>
