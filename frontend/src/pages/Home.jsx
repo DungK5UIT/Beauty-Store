@@ -4,6 +4,7 @@ import axios from 'axios';
 import ProductCard from '../components/ProductCard';
 import { useAuth } from '../context/AuthContext';
 import unnamedImage from '../assets/unnamed.png';
+import { useNavigate, Link } from 'react-router-dom';
 
 // Định dạng tiền tệ
 const formatCurrency = (value) => {
@@ -22,6 +23,7 @@ const Home = () => {
   const [startIndex, setStartIndex] = useState(0);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const itemsPerPage = 3;
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
