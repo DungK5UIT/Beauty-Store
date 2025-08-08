@@ -11,10 +11,13 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [cartItemCount, setCartItemCount] = useState(0);
   const [loadingCart, setLoadingCart] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
   const userMenuRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     const fetchCartCount = async (userId) => {
@@ -53,6 +56,9 @@ const Header = () => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setIsUserMenuOpen(false);
       }
+      if (searchInputRef.current && !searchInputRef.current.contains(event.target)) {
+        setIsSearchOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -77,7 +83,36 @@ const Header = () => {
       navigate('/login');
     }
   };
-return (
+
+  const handleSearchClick = () => {
+    setIsSearchOpen(prev => !prev);
+    setTimeout(() => searchInputRef.current?.focus(), 0); // Focus input when opened
+  };
+
+  const handleSearchSubmit = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) {
+      setToast({ show: true, message: 'Vui lòng nhập từ khóa tìm kiếm', type: 'error' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/products/list`, {
+        params: { name: searchQuery }
+      });
+      setIsSearchOpen(false);
+      setSearchQuery('');
+      navigate('/search', { state: { searchResults: response.data, query: searchQuery } });
+    } catch (error) {
+      const message = error.response?.data?.message || 'Không thể tìm kiếm sản phẩm';
+      setToast({ show: true, message, type: 'error' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
+      console.error('Lỗi khi tìm kiếm:', error.response || error);
+    }
+  };
+
+  return (
     <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
       {toast.show && (
         <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
@@ -85,25 +120,26 @@ return (
         </div>
       )}
 
-       <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-center py-2 text-sm font-medium">
-          🎉 MIỄN PHÍ GIAO HÀNG cho đơn hàng từ 500K - Khuyến mãi đặc biệt cuối tuần! 🎉
-        </div>
+      <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-center py-2 text-sm font-medium">
+        🎉 MIỄN PHÍ GIAO HÀNG cho đơn hàng từ 500K - Khuyến mãi đặc biệt cuối tuần! 🎉
+      </div>
 
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-rose-400 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">✨</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  BEAUTY LUXE
-                </h1>
-                <p className="text-xs text-gray-500 font-medium">Premium Cosmetics</p>
-              </div>
+      <div className="container mx-auto px-6 py-4">
+        <div className="flex justify-between items-center">
+          {/* Logo */}
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-rose-400 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-xl">✨</span>
             </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+                BEAUTY LUXE
+              </h1>
+              <p className="text-xs text-gray-500 font-medium">Premium Cosmetics</p>
+            </div>
+          </div>
 
+          {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <NavLink to="/">Trang chủ</NavLink>
             <NavLink to="/product">Sản phẩm</NavLink>
@@ -114,8 +150,22 @@ return (
             )}
           </nav>
 
+          {/* Action Buttons and Search */}
           <div className="flex items-center space-x-5">
-            <ActionButton Icon={Search} onClick={() => navigate('/search')} />
+            <div className="relative" ref={searchInputRef}>
+              <ActionButton Icon={Search} onClick={handleSearchClick} />
+              {isSearchOpen && (
+                <form onSubmit={handleSearchSubmit} className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg py-2 px-3 z-20 ring-1 ring-black ring-opacity-5">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Tìm kiếm sản phẩm..."
+                    className="w-full px-3 py-2 text-sm text-gray-700 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </form>
+              )}
+            </div>
             {user && (
               <Link to="/cart" className="relative text-gray-500 hover:text-emerald-500 transition-colors duration-300">
                 <ShoppingCart size={22} />
