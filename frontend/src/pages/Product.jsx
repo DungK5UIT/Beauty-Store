@@ -20,6 +20,11 @@ const Product = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 12; // 4 products per row × 3 rows
 
+  // Debug: Kiểm tra trạng thái user
+  useEffect(() => {
+    console.log('User state:', user);
+  }, [user]);
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -40,11 +45,13 @@ const Product = () => {
 
   const addProductToCart = async (product) => {
     if (!user) {
+      console.log('Không có user, chuyển hướng đến login');
       navigate('/login');
       return;
     }
 
     try {
+      console.log('Thêm vào giỏ hàng, user ID:', user.id, 'product ID:', product.id);
       await axios.post(`${API_BASE_URL}/api/cart/add/${user.id}`, {
         productId: product.id,
         quantity: 1,
@@ -99,7 +106,11 @@ const Product = () => {
   return (
     <div className="min-h-screen bg-gray-50 relative">
       {toast.show && (
-        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
+        <div
+          className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${
+            toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+          }`}
+        >
           {toast.message}
         </div>
       )}
@@ -138,6 +149,7 @@ const Product = () => {
                       <ProductCard
                         key={product.id}
                         product={product}
+                        user={user} // Thêm prop user vào ProductCard
                         onAddToCart={() => addProductToCart(product)}
                       />
                     ))
