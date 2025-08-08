@@ -97,7 +97,7 @@ return (
                 <span className="text-white font-bold text-xl">✨</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold bg-[#483C54] bg-clip-text text-transparent">
                   BEAUTY LUXE
                 </h1>
                 <p className="text-xs text-gray-500 font-medium">Premium Cosmetics</p>
