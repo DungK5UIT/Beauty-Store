@@ -145,7 +145,8 @@ const Product = () => {
                         key={product.id}
                         product={product}
                         user={user}
-                        onAddToCart={() => addProductToCart(product)}
+                        handleAddToCartClick={() => handleAddToCart(product)}
+
                       />
                     ))
                   ) : (
