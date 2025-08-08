@@ -18,17 +18,18 @@ const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [startIndex, setStartIndex] = useState(0); // Chỉ số bắt đầu của sản phẩm hiển thị
+  const itemsPerPage = 3; // Mỗi lần cuộn 3 sản phẩm
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/api/products/list`);
-        // Giả sử backend trả về mảng sản phẩm, có thể thêm `isBestSeller` hoặc `soldCount`
-        // Ở đây mình sắp xếp theo số lượng bán (giả định có trường `soldCount`)
+        // Sắp xếp theo số lượng bán (giả sử có trường soldCount)
         const sorted = response.data
           .sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0))
-          .slice(0, 8); // Lấy 8 sản phẩm bán chạy nhất
+          .slice(0, 9); // Lấy tối đa 9 sản phẩm bán chạy nhất
         setProducts(sorted);
       } catch (err) {
         setError(err.response?.data?.message || 'Không thể tải sản phẩm bán chạy');
@@ -65,6 +66,18 @@ const Home = () => {
       alert(message);
     }
   };
+
+  // Xử lý nút điều hướng
+  const handlePrev = () => {
+    setStartIndex((prev) => Math.max(prev - itemsPerPage, 0));
+  };
+
+  const handleNext = () => {
+    setStartIndex((prev) => Math.min(prev + itemsPerPage, products.length - itemsPerPage));
+  };
+
+  // Lấy sản phẩm hiện tại để hiển thị (3 sản phẩm mỗi lần)
+  const displayedProducts = products.slice(startIndex, startIndex + itemsPerPage * 3);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -115,20 +128,53 @@ const Home = () => {
           ) : products.length === 0 ? (
             <p className="text-center text-gray-600">Hiện chưa có sản phẩm bán chạy nào.</p>
           ) : (
-            <div className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide">
-              {products.map((product) => (
-                <div key={product.id} className="flex-shrink-0 w-64">
-                  <ProductCard
-                    product={product}
-                    user={user}
-                    handleAddToCartClick={() => handleAddToCart(product)}
-                  />
+            <div className="relative">
+              {/* Nút Prev */}
+              <button
+                onClick={handlePrev}
+                disabled={startIndex === 0}
+                className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
+                aria-label="Sản phẩm trước"
+              >
+                ←
+              </button>
+
+              {/* Danh sách sản phẩm */}
+              <div className="flex justify-center overflow-hidden px-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 transition-transform duration-500 ease-in-out" style={{ transform: `translateX(0)` }}>
+                  {displayedProducts.map((product) => (
+                    <div key={product.id} className="flex-shrink-0">
+                      <ProductCard
+                        product={product}
+                        user={user}
+                        handleAddToCartClick={() => handleAddToCart(product)}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Nút Next */}
+              <button
+                onClick={handleNext}
+                disabled={startIndex >= products.length - itemsPerPage}
+                className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
+                aria-label="Sản phẩm tiếp theo"
+              >
+                →
+              </button>
             </div>
           )}
 
-         
+          {/* Nút Xem tất cả */}
+          <div className="text-center mt-10">
+            <Link
+              to="/products"
+              className="inline-block bg-gray-800 text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Xem tất cả sản phẩm
+            </Link>
+          </div>
         </div>
       </section>
     </div>
