@@ -93,7 +93,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         <img
           src={image}
           alt={name}
-          className="w-80% h-58 object-cover transition-transform duration-300 group-hover:scale-105"
+        className="max-w-[70%] max-h-[70%] object-contain mx-auto transition-transform duration-300 group-hover:scale-105"
         />
 
         {/* Quick Add Button */}
