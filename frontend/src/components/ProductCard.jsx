@@ -125,7 +125,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         {/* Rating */}
         <div className="flex items-center gap-2 mb-3">
           <div className="flex items-center gap-1">{renderStars()}</div>
-          <span className="text-xs text-gray-500">({review_count || 0})</span>
+          <span className="text-xs text-gray-500">{reviewCount}</span>
         </div>
 
         {/* Price */}
