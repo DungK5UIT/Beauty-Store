@@ -149,7 +149,7 @@ const Product = () => {
                       <ProductCard
                         key={product.id}
                         product={product}
-                        user={user} // Thêm prop user vào ProductCard
+                        user={user}
                         onAddToCart={() => addProductToCart(product)}
                       />
                     ))
