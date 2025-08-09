@@ -3,7 +3,7 @@ import { ShoppingCart, Heart, Star } from 'lucide-react';
 
 const formatCurrency = (value) => {
   if (value == null) return '';
-  return Number(value).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+  return Number(value).toLocaleString('vi-VN') + '₫';
 };
 
 const ProductCard = ({ product, onAddToCart }) => {
@@ -18,12 +18,12 @@ const ProductCard = ({ product, onAddToCart }) => {
     category,
     tags,
     rating,
-    reviewCount,
+    review_count,
   } = product;
 
   // Badge check
-  const isNew = tags?.toLowerCase().includes('new');
-  const isBestSeller = tags?.toLowerCase().includes('bán chạy');
+  const isNew = tags?.toLowerCase().includes('new') || tags?.toLowerCase().includes('mới');
+  const isBestSeller = tags?.toLowerCase().includes('bán chạy') || tags?.toLowerCase().includes('best seller');
 
   const handleFavoriteClick = () => {
     setIsFavorited((prev) => !prev);
@@ -41,20 +41,20 @@ const ProductCard = ({ product, onAddToCart }) => {
     const stars = [];
 
     for (let i = 0; i < fullStars; i++) {
-      stars.push(<Star key={`full-${i}`} size={14} className="fill-yellow-400 text-yellow-400" />);
+      stars.push(<Star key={`full-${i}`} size={12} className="fill-yellow-400 text-yellow-400" />);
     }
     if (halfStar) {
-      stars.push(<Star key="half" size={14} className="text-yellow-400" />);
+      stars.push(<Star key="half" size={12} className="text-yellow-400" />);
     }
     while (stars.length < 5) {
-      stars.push(<Star key={`empty-${stars.length}`} size={14} className="text-gray-300" />);
+      stars.push(<Star key={`empty-${stars.length}`} size={12} className="text-gray-300" />);
     }
     return stars;
   };
 
   return (
     <div
-      className="relative transition-all duration-300 overflow-hidden group border rounded-lg bg-white shadow-sm hover:shadow-md"
+      className="relative transition-all duration-300 overflow-hidden group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -75,7 +75,7 @@ const ProductCard = ({ product, onAddToCart }) => {
       {/* Favorite Button */}
       <button
         onClick={handleFavoriteClick}
-        className={`absolute top-3 right-3 z-10 p-2 rounded-full transition-all duration-200 shadow-sm
+        className={`absolute top-3 right-3 z-10 p-2 rounded-full transition-all duration-200
           ${isFavorited ? 'bg-red-500 text-white' : 'bg-white text-gray-400 hover:text-red-500'}
           ${isHovered ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100`}
       >
@@ -84,7 +84,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 
       {/* Product Image */}
       <div
-        className={`relative overflow-hidden ${
+        className={`relative overflow-hidden rounded-lg ${
           rating === 5
             ? 'bg-gradient-to-br from-yellow-50 to-amber-50'
             : 'bg-gray-50'
@@ -125,7 +125,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         {/* Rating */}
         <div className="flex items-center gap-2 mb-3">
           <div className="flex items-center gap-1">{renderStars()}</div>
-          <span className="text-xs text-gray-500">({reviewCount || 0})</span>
+          <span className="text-xs text-gray-500">({review_count || 0})</span>
         </div>
 
         {/* Price */}
