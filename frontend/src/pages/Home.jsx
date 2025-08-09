@@ -17,6 +17,7 @@ const formatCurrency = (value) => {
 const Home = () => {
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
+  const [topRatedProducts, setTopRatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [startIndex, setStartIndex] = useState(0);
@@ -24,18 +25,26 @@ const Home = () => {
   const itemsPerPage = 3;
   const navigate = useNavigate();
 
-  // Fetch best-selling products
+  // Fetch best-selling and top-rated products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/api/products/list`);
-        const sorted = response.data
+        
+        // Best-selling products (sorted by soldCount)
+        const sortedBySold = response.data
           .sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0))
           .slice(0, 9);
-        setProducts(sorted);
+        setProducts(sortedBySold);
+
+        // Top-rated products (sorted by rating)
+        const sortedByRating = response.data
+          .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+          .slice(0, 8);
+        setTopRatedProducts(sortedByRating);
       } catch (err) {
-        setError(err.response?.data?.message || 'Không thể tải sản phẩm bán chạy');
+        setError(err.response?.data?.message || 'Không thể tải sản phẩm');
         console.error('Lỗi khi tải sản phẩm:', err);
       } finally {
         setLoading(false);
@@ -131,55 +140,55 @@ const Home = () => {
       </div>
 
       {/* Best Sellers Section */}
-     <section className="py-12 bg-white">
-  <div className="container mx-auto px-4">
-    <div className="flex items-center justify-between mb-6">
-      <h2 className="text-2xl font-bold text-gray-800">
-        Khám phá những sản phẩm bán chạy nhất
-      </h2>
-      <div className="flex space-x-4">
-        <button
-          onClick={handlePrev}
-          disabled={startIndex === 0}
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all"
-          aria-label="Xem sản phẩm trước đó"
-        >
-          ←
-        </button>
-        <button
-          onClick={handleNext}
-          disabled={startIndex >= products.length - 4} // ✅ số sản phẩm/trang = 4
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all"
-          aria-label="Xem sản phẩm tiếp theo"
-        >
-          →
-        </button>
-      </div>
-    </div>
-
-    {loading ? (
-      <p className="text-center text-gray-600">Đang tải sản phẩm...</p>
-    ) : error ? (
-      <p className="text-center text-red-500">{error}</p>
-    ) : products.length === 0 ? (
-      <p className="text-center text-gray-600">
-        Hiện chưa có sản phẩm bán chạy nào.
-      </p>
-    ) : (
-      <div className="flex space-x-6 justify-center">
-        {products.slice(startIndex, startIndex + 4).map((product) => ( // ✅ hiển thị 4 sản phẩm/trang
-          <div key={product.id} className="flex-shrink-0 w-64">
-            <ProductCard
-              product={product}
-              user={user}
-              onAddToCart={() => handleAddToCart(product)}
-            />
+      <section className="py-12 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">
+              Khám phá những sản phẩm bán chạy nhất
+            </h2>
+            <div className="flex space-x-4">
+              <button
+                onClick={handlePrev}
+                disabled={startIndex === 0}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all"
+                aria-label="Xem sản phẩm trước đó"
+              >
+                ←
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={startIndex >= products.length - 4}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all"
+                aria-label="Xem sản phẩm tiếp theo"
+              >
+                →
+              </button>
+            </div>
           </div>
-        ))}
-      </div>
-    )}
-  </div>
-</section>
+
+          {loading ? (
+            <p className="text-center text-gray-600">Đang tải sản phẩm...</p>
+          ) : error ? (
+            <p className="text-center text-red-500">{error}</p>
+          ) : products.length === 0 ? (
+            <p className="text-center text-gray-600">
+              Hiện chưa có sản phẩm bán chạy nào.
+            </p>
+          ) : (
+            <div className="flex space-x-6 justify-center">
+              {products.slice(startIndex, startIndex + 4).map((product) => (
+                <div key={product.id} className="flex-shrink-0 w-64">
+                  <ProductCard
+                    product={product}
+                    user={user}
+                    onAddToCart={() => handleAddToCart(product)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Product Showcase Section */}
       <div className="min-h-screen flex">
@@ -231,7 +240,6 @@ const Home = () => {
         </div>
       </div>
 
-
       {/* Top Rated Products Section */}
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
@@ -241,7 +249,7 @@ const Home = () => {
             </h2>
             <Link
               to="/product"
-className="bg-transparent border border-gray-400 text-gray-700 px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 hover:bg-gray-100"
+              className="bg-purple-800 text-white px-6 py-3 rounded-full text-sm font-semibold uppercase tracking-wide transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 hover:bg-purple-900"
             >
               Mua tất cả
             </Link>
@@ -270,7 +278,6 @@ className="bg-transparent border border-gray-400 text-gray-700 px-3 py-1 rounded
           )}
         </div>
       </section>
-
     </div>
   );
 };
