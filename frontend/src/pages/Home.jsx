@@ -131,51 +131,55 @@ const Home = () => {
       </div>
 
       {/* Best Sellers Section */}
-      <section className="py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Khám phá những sản phẩm bán chạy nhất</h2>
-            <div className="flex space-x-4">
-              <button
-                onClick={handlePrev}
-                disabled={startIndex === 0}
-                className={`w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
-                aria-label="Xem sản phẩm trước đó"
-              >
-                ←
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={startIndex >= products.length - itemsPerPage}
-                className={`w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all`}
-                aria-label="Xem sản phẩm tiếp theo"
-              >
-                →
-              </button>
-            </div>
-          </div>
+     <section className="py-12 bg-white">
+  <div className="container mx-auto px-4">
+    <div className="flex items-center justify-between mb-6">
+      <h2 className="text-2xl font-bold text-gray-800">
+        Khám phá những sản phẩm bán chạy nhất
+      </h2>
+      <div className="flex space-x-4">
+        <button
+          onClick={handlePrev}
+          disabled={startIndex === 0}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all"
+          aria-label="Xem sản phẩm trước đó"
+        >
+          ←
+        </button>
+        <button
+          onClick={handleNext}
+          disabled={startIndex >= products.length - 4} // ✅ số sản phẩm/trang = 4
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border-2 border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all"
+          aria-label="Xem sản phẩm tiếp theo"
+        >
+          →
+        </button>
+      </div>
+    </div>
 
-          {loading ? (
-            <p className="text-center text-gray-600">Đang tải sản phẩm...</p>
-          ) : error ? (
-            <p className="text-center text-red-500">{error}</p>
-          ) : products.length === 0 ? (
-            <p className="text-center text-gray-600">Hiện chưa có sản phẩm bán chạy nào.</p>
-          ) : (
-            <div className="flex space-x-6 justify-center">
-              {displayedProducts.map((product) => (
-                <div key={product.id} className="flex-shrink-0 w-64">
-                  <ProductCard
-                    product={product}
-                    user={user}
-                    onAddToCart={() => handleAddToCart(product)}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+    {loading ? (
+      <p className="text-center text-gray-600">Đang tải sản phẩm...</p>
+    ) : error ? (
+      <p className="text-center text-red-500">{error}</p>
+    ) : products.length === 0 ? (
+      <p className="text-center text-gray-600">
+        Hiện chưa có sản phẩm bán chạy nào.
+      </p>
+    ) : (
+      <div className="flex space-x-6 justify-center">
+        {products.slice(startIndex, startIndex + 4).map((product) => ( // ✅ hiển thị 4 sản phẩm/trang
+          <div key={product.id} className="flex-shrink-0 w-64">
+            <ProductCard
+              product={product}
+              user={user}
+              onAddToCart={() => handleAddToCart(product)}
+            />
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</section>
 
       {/* Product Showcase Section */}
       <div className="min-h-screen flex">
