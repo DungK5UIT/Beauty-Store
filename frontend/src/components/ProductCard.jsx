@@ -18,7 +18,7 @@ const ProductCard = ({ product, onAddToCart }) => {
     category,
     tags,
     rating,
-    review_count,
+    reviewCount,
   } = product;
 
   // Badge check
