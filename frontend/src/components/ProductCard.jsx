@@ -58,29 +58,13 @@ const ProductCard = ({ product, onAddToCart }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Badges */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
-        {isNew && (
-          <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
-            MỚI
-          </span>
-        )}
-        {isBestSeller && (
-          <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded-full">
-            BÁN CHẠY
-          </span>
-        )}
-      </div>
 
-      {/* Favorite Button */}
-      <button
-        onClick={handleFavoriteClick}
-        className={`absolute top-3 right-3 z-10 p-2 rounded-full transition-all duration-200
-          ${isFavorited ? 'bg-red-500 text-white' : 'bg-white text-gray-400 hover:text-red-500'}
-          ${isHovered ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100`}
-      >
-        <Heart size={16} className={isFavorited ? 'fill-current' : ''} />
-      </button>
+      {/* Extra Tag ở góc phải */}
+{tags && (
+  <span className="absolute top-3 right-3 z-10 bg-gray-200 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
+    {tags}
+  </span>
+)}
 
       {/* Product Image */}
       <div
