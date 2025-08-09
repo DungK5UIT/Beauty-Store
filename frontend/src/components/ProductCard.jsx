@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
 
 const formatCurrency = (value) => {
   if (value == null) return '';
@@ -7,9 +7,25 @@ const formatCurrency = (value) => {
 };
 
 const ProductCard = ({ product, onAddToCart, user }) => {
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [isFavorited, setIsFavorited] = React.useState(false);
+
+  const handleAddToCart = () => {
+    if (onAddToCart) {
+      onAddToCart(product.id || product._id); // Giả sử product có id hoặc _id
+    }
+  };
+
+  const handleFavoriteClick = () => {
+    setIsFavorited(!isFavorited);
+    // Thêm logic xử lý yêu thích nếu cần (ví dụ: callback onToggleFavorite)
+  };
+
   return (
     <div
       className="relative transition-all duration-300 overflow-hidden group bg-white rounded-xl shadow-md hover:shadow-lg hover:-translate-y-2"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
@@ -24,11 +40,23 @@ const ProductCard = ({ product, onAddToCart, user }) => {
           </span>
         )}
         {product.tag && (
-          <span className="absolute top-2 right-2 bg-emerald-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full uppercase">
+          <span className="bg-emerald-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full uppercase">
             {product.tag}
           </span>
         )}
       </div>
+
+      {/* Favorite Button */}
+      <button
+        onClick={handleFavoriteClick}
+        className={`absolute top-3 right-3 z-10 p-2 rounded-full transition-all duration-200 ${
+          isFavorited
+            ? 'bg-red-500 text-white'
+            : 'bg-white text-gray-400 hover:text-red-500'
+        } ${isHovered ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100`}
+      >
+        <Heart size={16} className={isFavorited ? 'fill-current' : ''} />
+      </button>
 
       {/* Product Image */}
       <div className="relative overflow-hidden rounded-lg bg-gray-50">
@@ -45,12 +73,12 @@ const ProductCard = ({ product, onAddToCart, user }) => {
         {/* Quick Add Button - appears on hover */}
         <div
           className={`absolute inset-x-0 bottom-0 p-4 transition-all duration-300 ${
-            'group-hover:translate-y-0 group-hover:opacity-100 translate-y-full opacity-0'
+            isHovered ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
           }`}
         >
           <button
-            onClick={onAddToCart}
-            className="w-full flex items-center justify-center bg-[#483C54] text-white font-bold py-2 px-4 rounded-lg text-sm transition-all duration-300 hover:opacity-90 hover:shadow-md disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
+            onClick={handleAddToCart}
+            className="w-full bg-[#483C54] text-white font-bold py-2 px-4 rounded-lg text-sm transition-all duration-300 hover:opacity-90 hover:shadow-md disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
           >
             <ShoppingCart size={16} className="mr-2" />
             {user ? 'Thêm vào giỏ' : ''}
@@ -58,15 +86,23 @@ const ProductCard = ({ product, onAddToCart, user }) => {
         </div>
       </div>
 
+      {/* Product Info */}
       <div className="p-4">
+        {/* Brand (dựa trên dữ liệu mẫu, có thể thay bằng brand nếu product có) */}
+        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+          {product.brand || 'Thương hiệu'}
+        </p>
+
+        {/* Product Name */}
         <h3
-          className="font-semibold text-gray-800 text-sm mb-2 h-12 line-clamp-2"
+          className="font-semibold text-gray-800 text-sm mb-2 h-12 line-clamp-2 leading-tight"
           title={product.name || 'Sản phẩm'}
         >
           {product.name || 'Sản phẩm'}
         </h3>
 
-        <div className="mb-3">
+        {/* Price */}
+        <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-emerald-600">
             {formatCurrency(product.price)}
           </span>
@@ -76,14 +112,6 @@ const ProductCard = ({ product, onAddToCart, user }) => {
             </span>
           )}
         </div>
-
-        <button
-          onClick={onAddToCart}
-          className="w-full flex items-center justify-center bg-[#483C54] text-white font-bold py-2 px-4 rounded-lg text-sm transition-all duration-300 hover:opacity-90 hover:shadow-md disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
-        >
-          <ShoppingCart size={16} className="mr-2" />
-          {user ? 'Thêm vào giỏ' : ''}
-        </button>
       </div>
     </div>
   );
