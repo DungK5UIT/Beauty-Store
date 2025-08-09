@@ -241,18 +241,13 @@ const Home = () => {
       </div>
 
       {/* Top Rated Products Section */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-800">
               Sản phẩm yêu thích bạn cần
             </h2>
-            <Link
-              to="/product"
-              className="bg-purple-800 text-white px-6 py-3 rounded-full text-sm font-semibold uppercase tracking-wide transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 hover:bg-purple-900"
-            >
-              Mua tất cả
-            </Link>
+            
           </div>
 
           {loading ? (
@@ -276,7 +271,16 @@ const Home = () => {
               ))}
             </div>
           )}
+           <div className="flex justify-center">
+    <Link
+      to="/product"
+      className="bg-transparent border border-gray-400 text-gray-700 px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 hover:bg-gray-100"
+    >
+      Mua tất cả
+    </Link>
+  </div>
         </div>
+       
       </section>
     </div>
   );
