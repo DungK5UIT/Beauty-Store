@@ -18,7 +18,7 @@ const Product = () => {
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 12; // 4 products per row × 3 rows
+  const productsPerPage = 9; // 3 products per row × 3 rows
 
   // Debug: Kiểm tra trạng thái user
   useEffect(() => {
@@ -143,7 +143,7 @@ const Product = () => {
                     )}
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {currentProducts.length > 0 ? (
                     currentProducts.map((product) => (
                       <ProductCard
