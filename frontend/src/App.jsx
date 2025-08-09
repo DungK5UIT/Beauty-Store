@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Cart from './pages/Cart';
 import Pay from './pages/Pay';
 import Home from './pages/Home';
+import ChatBox from './components/ChatBox';
 const App = () => {
   return (
     <AuthProvider>
@@ -22,6 +23,7 @@ const App = () => {
             <Route path="/pay" element={<Pay />} />
             <Route path="*" element={<div className="text-center p-20">404 - Trang không tồn tại</div>} />
           </Routes>
+          <ChatBox/>
         </main>
         <Footer />
       </div>

@@ -336,7 +336,7 @@ const Pay = () => {
               {/* Place Order Button */}
               <button
                 onClick={handlePlaceOrder}
-                className="w-full bg-[#483C54]"
+  className="w-full bg-[#483C54] hover:bg-[#5a4d68] text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
               >
                 Đặt hàng ngay
               </button>

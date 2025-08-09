@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.53.0",
     "@tailwindcss/vite": "^4.1.11",
     "axios": "^1.11.0",
@@ -17,7 +18,9 @@
     "lucide-react": "^0.534.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.7.1"
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.7.1",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
