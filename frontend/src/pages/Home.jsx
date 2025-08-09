@@ -230,6 +230,47 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+
+      {/* Top Rated Products Section */}
+      <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">
+              Sản phẩm yêu thích bạn cần
+            </h2>
+            <Link
+              to="/product"
+className="bg-transparent border border-gray-400 text-gray-700 px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 hover:bg-gray-100"
+            >
+              Mua tất cả
+            </Link>
+          </div>
+
+          {loading ? (
+            <p className="text-center text-gray-600">Đang tải sản phẩm...</p>
+          ) : error ? (
+            <p className="text-center text-red-500">{error}</p>
+          ) : topRatedProducts.length === 0 ? (
+            <p className="text-center text-gray-600">
+              Hiện chưa có sản phẩm được đánh giá cao.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {topRatedProducts.map((product) => (
+                <div key={product.id} className="flex-shrink-0 w-full">
+                  <ProductCard
+                    product={product}
+                    user={user}
+                    onAddToCart={() => handleAddToCart(product)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
     </div>
   );
 };

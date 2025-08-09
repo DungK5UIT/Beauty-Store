@@ -61,7 +61,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 
       {/* Extra Tag ở góc phải */}
 {tags && (
-  <span className="absolute top-3 right-3 z-10 bg-gray-200 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
+  <span className="absolute top-3 right-3 z-10 bg-transparent border border-gray-400 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
     {tags}
   </span>
 )}
