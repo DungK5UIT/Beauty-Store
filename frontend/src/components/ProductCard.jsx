@@ -58,13 +58,12 @@ const ProductCard = ({ product, onAddToCart }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-
       {/* Extra Tag ở góc phải */}
-{tags && (
-  <span className="absolute top-3 right-3 z-10 bg-transparent border border-gray-400 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
-    {tags}
-  </span>
-)}
+      {tags && (
+        <span className="absolute top-3 right-3 z-10 bg-transparent border border-gray-400 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
+          {tags}
+        </span>
+      )}
 
       {/* Product Image */}
       <div
@@ -72,12 +71,12 @@ const ProductCard = ({ product, onAddToCart }) => {
           rating === 5
             ? 'bg-gradient-to-br from-yellow-50 to-amber-50'
             : 'bg-gray-50'
-        }`}
+        } aspect-square w-full flex items-center justify-center`}
       >
         <img
           src={image}
           alt={name}
-        className="max-w-[50%] max-h-[50%] object-contain mx-auto transition-transform duration-300 group-hover:scale-105"
+          className="w-50% h-50% object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
         {/* Quick Add Button */}
