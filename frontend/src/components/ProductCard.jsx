@@ -21,6 +21,14 @@ const ProductCard = ({ product, onAddToCart }) => {
     reviewCount,
   } = product;
 
+  // Badge check
+  const isNew = tags?.toLowerCase().includes('new') || tags?.toLowerCase().includes('mới');
+  const isBestSeller = tags?.toLowerCase().includes('bán chạy') || tags?.toLowerCase().includes('best seller');
+
+  const handleFavoriteClick = () => {
+    setIsFavorited((prev) => !prev);
+  };
+
   const handleAddToCart = () => {
     if (onAddToCart) {
       onAddToCart(product);
@@ -46,70 +54,71 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   return (
     <div
-      className="relative transition-all duration-300 overflow-hidden group max-w-[200px] mx-auto"
+      className="relative transition-all duration-300 overflow-hidden group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Tag góc phải */}
+
+      {/* Extra Tag ở góc phải */}
       {tags && (
         <span className="absolute top-3 right-3 z-10 bg-transparent border border-gray-400 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
           {tags}
         </span>
       )}
 
-      {/* Khung ảnh nhỏ */}
+      {/* Product Image */}
       <div
-        className={`relative overflow-hidden rounded-lg ${
+        className={`relative overflow-hidden rounded-lg flex items-center justify-center ${
           rating === 5
             ? 'bg-gradient-to-br from-yellow-50 to-amber-50'
             : 'bg-gray-50'
-        } w-[150px] h-[150px] flex items-center justify-center mx-auto`}
+        } w-full h-[200px]`}
       >
         <img
           src={image}
           alt={name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="max-w-[80%] max-h-[80%] object-contain transition-transform duration-300 group-hover:scale-105"
         />
 
-        {/* Nút thêm vào giỏ */}
+        {/* Quick Add Button */}
         <div
-          className={`absolute inset-x-0 bottom-0 p-2 transition-all duration-300
+          className={`absolute inset-x-0 bottom-0 p-4 transition-all duration-300
             ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}
         >
           <button
             onClick={handleAddToCart}
-            className="w-full bg-black text-white py-1 px-2 rounded-md hover:bg-gray-800 transition-colors duration-200 text-sm flex items-center justify-center gap-1"
+            className="w-full bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors duration-200 font-medium flex items-center justify-center gap-2"
           >
-            <ShoppingCart size={14} /> Thêm
+            <ShoppingCart size={16} /> Thêm vào giỏ
           </button>
         </div>
       </div>
 
-      {/* Thông tin sản phẩm */}
-      <div className="p-3 text-center">
-        {/* Loại sản phẩm */}
+      {/* Product Info */}
+      <div className="p-4">
+        {/* Category */}
         <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
           {category}
         </p>
 
-        {/* Tên */}
-        <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 leading-tight text-sm">
+        {/* Product Name */}
+        <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 leading-tight">
           {name}
         </h3>
 
-        {/* Đánh giá */}
-        <div className="flex items-center gap-1 justify-center mb-2">
-          {renderStars()}
-          <span className="text-xs text-gray-500">({reviewCount})</span>
+        {/* Rating */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-1">{renderStars()}</div>
+          <span className="text-xs text-gray-500">{reviewCount}</span>
         </div>
 
-        {/* Giá */}
-        <div className="flex items-center justify-center gap-2">
-          <span className="text-sm font-semibold text-gray-900">
+        {/* Price */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-lg font-semibold text-gray-900">
             {formatCurrency(price)}
           </span>
           {originalPrice && originalPrice > price && (
-            <span className="text-xs text-gray-400 line-through">
+            <span className="text-sm text-gray-400 line-through">
               {formatCurrency(originalPrice)}
             </span>
           )}
