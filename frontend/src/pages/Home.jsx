@@ -230,7 +230,7 @@ const Home = () => {
               được gói ghém hoàn hảo và sẵn sàng làm vui lòng những người thân yêu của bạn.
             </p>
             <Link
-              to="/product"
+              to="/catagory"
               className="bg-white text-purple-800 px-10 py-5 rounded-full text-sm font-semibold uppercase tracking-wide transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 hover:bg-gray-100"
               style={{ color: '#2d2d4a' }}
             >

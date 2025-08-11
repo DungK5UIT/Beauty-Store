@@ -106,7 +106,7 @@ return (
 
           <nav className="hidden md:flex items-center space-x-8">
             <NavLink to="/">Trang chủ</NavLink>
-            <NavLink to="/product">Sản phẩm</NavLink>
+            <NavLink to="/catagory">Sản phẩm</NavLink>
             <NavLink to="/about">Giới thiệu</NavLink>
             <NavLink to="/contact">Liên hệ</NavLink>
             {user?.role === 'ADMIN' && (
