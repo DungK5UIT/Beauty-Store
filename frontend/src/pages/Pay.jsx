@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft, MapPin, Phone, Mail, CreditCard,
   Truck, Check, QrCode, Shield, User
@@ -26,6 +26,7 @@ const Pay = () => {
   const [showMomoQR, setShowMomoQR] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const user = JSON.parse(localStorage.getItem('user'));
 
   useEffect(() => {
@@ -37,15 +38,31 @@ const Pay = () => {
       }
 
       try {
-        const response = await axios.get(`https://deploy-backend-production-e64e.up.railway.app/api/cart/${user.id}`);
+        const response = await axios.get(`https://deploy-backend-production-e64e.up.railway.app/api/cart/${user.id}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
         setCartItems(response.data);
       } catch (err) {
-        setError(err.response?.data || 'Không thể tải giỏ hàng');
+        setError(err.response?.data?.message || 'Không thể tải giỏ hàng');
         console.error('Fetch cart failed:', err.response || err);
       }
     };
     fetchCart();
   }, [navigate, user]);
+
+  useEffect(() => {
+    // Xử lý callback từ VNPay
+    const params = new URLSearchParams(location.search);
+    const vnp_ResponseCode = params.get('vnp_ResponseCode');
+    if (vnp_ResponseCode) {
+      if (vnp_ResponseCode === '00') {
+        alert('Thanh toán thành công!');
+        navigate('/order-success');
+      } else {
+        setError('Thanh toán thất bại. Vui lòng thử lại.');
+      }
+    }
+  }, [location, navigate]);
 
   const handleInputChange = (e) => {
     setShippingInfo({
@@ -59,7 +76,7 @@ const Pay = () => {
     setShowMomoQR(method === 'momo');
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!user || !user.id) {
       setError('Vui lòng đăng nhập để đặt hàng');
       navigate('/login', { state: { from: '/pay' } });
@@ -69,11 +86,32 @@ const Pay = () => {
       setError('Vui lòng chọn phương thức thanh toán');
       return;
     }
-    if (!shippingInfo.fullName || !shippingInfo.phone || !shippingInfo.address) {
+    if (!shippingInfo.fullName || !shippingInfo.phone || !shippingInfo.address || !shippingInfo.city || !shippingInfo.district) {
       setError('Vui lòng điền đầy đủ thông tin giao hàng');
       return;
     }
-    alert('Đặt hàng thành công!');
+
+    try {
+      const shippingAddress = `${shippingInfo.address}, ${shippingInfo.district}, ${shippingInfo.city}`;
+      const response = await axios.post('https://deploy-backend-production-e64e.up.railway.app/api/orders/create', {
+        userId: user.id,
+        paymentMethod: paymentMethod.toUpperCase(), // 'COD', 'CARD', 'MOMO', 'VNPAY'
+        shippingAddress,
+        note: ''
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      if (paymentMethod === 'vnpay') {
+        window.location.href = response.data.paymentUrl;
+      } else {
+        alert('Đặt hàng thành công!');
+        navigate('/order-success');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Đặt hàng thất bại');
+      console.error('Place order failed:', err.response || err);
+    }
   };
 
   const total = cartItems.reduce(
@@ -211,29 +249,37 @@ const Pay = () => {
               </div>
 
               <div className="space-y-4">
-                {['cod', 'card', 'momo'].map((method) => {
+                {['cod', 'card', 'momo', 'vnpay'].map((method) => {
                   const label =
                     method === 'cod'
                       ? 'Thanh toán khi nhận hàng (COD)'
                       : method === 'card'
                       ? 'Thẻ tín dụng/Ghi nợ'
-                      : 'Ví MoMo';
+                      : method === 'momo'
+                      ? 'Ví MoMo'
+                      : 'VNPay';
                   const desc =
                     method === 'cod'
                       ? 'Thanh toán bằng tiền mặt khi nhận hàng'
                       : method === 'card'
                       ? 'Visa, MasterCard, JCB'
-                      : 'Thanh toán qua ví điện tử MoMo';
+                      : method === 'momo'
+                      ? 'Thanh toán qua ví điện tử MoMo'
+                      : 'Thanh toán qua VNPay';
                   const bg =
                     method === 'cod'
                       ? 'bg-orange-100 text-orange-600'
                       : method === 'card'
                       ? 'bg-blue-100 text-blue-600'
-                      : 'bg-pink-100 text-pink-600';
+                      : method === 'momo'
+                      ? 'bg-pink-100 text-pink-600'
+                      : 'bg-purple-100 text-purple-600';
                   const selected =
                     paymentMethod === method
                       ? method === 'momo'
                         ? 'border-pink-500 bg-pink-50'
+                        : method === 'vnpay'
+                        ? 'border-purple-500 bg-purple-50'
                         : 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300';
 
@@ -252,6 +298,10 @@ const Pay = () => {
                               </div>
                             ) : method === 'card' ? (
                               <CreditCard className="w-5 h-5" />
+                            ) : method === 'vnpay' ? (
+                              <div className="w-5 h-5 bg-purple-600 rounded-full flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">V</span>
+                              </div>
                             ) : (
                               <Truck className="w-5 h-5" />
                             )}
@@ -336,7 +386,7 @@ const Pay = () => {
               {/* Place Order Button */}
               <button
                 onClick={handlePlaceOrder}
-        className="w-full bg-[#483C54] hover:bg-[#5a4d68] text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
+                className="w-full bg-[#483C54] hover:bg-[#5a4d68] text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
               >
                 Đặt hàng ngay
               </button>

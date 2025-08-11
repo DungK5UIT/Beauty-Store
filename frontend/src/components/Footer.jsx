@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const Footer = () => (
   <footer className="bg-white/80 backdrop-blur-lg shadow-sm pt-12 pb-6">
@@ -15,9 +16,9 @@ const Footer = () => (
             </div>
           </div>
           <p className="text-gray-600 text-sm mb-4">Mang đến vẻ đẹp tự nhiên cho làn da của bạn...</p>
-          <button className="bg-gradient-to-br from-rose-400 to-pink-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-pink-700 transition-colors duration-300">
+          <Link to="/contact" className="bg-gradient-to-br from-rose-400 to-pink-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-pink-700 transition-colors duration-300">
             Liên hệ
-          </button>
+          </Link>
         </div>
         <div>
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Danh mục</h3>
