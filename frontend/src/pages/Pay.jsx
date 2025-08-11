@@ -95,7 +95,7 @@ const Pay = () => {
       const shippingAddress = `${shippingInfo.address}, ${shippingInfo.district}, ${shippingInfo.city}`;
       const response = await axios.post('https://deploy-backend-production-e64e.up.railway.app/api/orders/create', {
         userId: user.id,
-        paymentMethod: paymentMethod.toUpperCase(), // 'COD', 'CARD', 'MOMO', 'VNPAY'
+        paymentMethod: paymentMethod.toUpperCase(),
         shippingAddress,
         note: ''
       }, {
@@ -357,7 +357,7 @@ const Pay = () => {
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 text-sm">{item.product.name}</h4>
+                      <h4 className="font-medium text-gray-900 text-sm">{item.product?.name || 'Sản phẩm không xác định'}</h4>
                       <p className="text-gray-500 text-xs">Số lượng: {item.quantity}</p>
                     </div>
                     <div className="text-sm font-semibold text-gray-900">
