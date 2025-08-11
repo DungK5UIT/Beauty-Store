@@ -174,12 +174,11 @@ const { user } = useAuth();
       </p>
 
       {/* CTA button */}
-      <a
-        href="/product"
+      <Link to ="/product"
     className="bg-[#3c3c5a] text-white px-6 py-3 rounded-full text-sm font-semibold uppercase tracking-wide shadow-lg transition-all duration-300 hover:bg-white hover:text-[#3c3c5a] hover:-translate-y-1 hover:shadow-xl"
       >
         Mua Ngay
-      </a>
+      </Link>
     </div>
   </div>
 

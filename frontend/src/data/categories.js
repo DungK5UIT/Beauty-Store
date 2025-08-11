@@ -8,7 +8,7 @@ const categories = [
   { id: 'mask', name: 'Mặt nạ', icon: '🎭' },
   { id: 'essence', name: 'Tinh chất', icon: '✨' },
   { id: 'eye-cream', name: 'Kem mắt', icon: '👁️' },
-  { id: 'shampoo', name: 'Dầu gội', icon: '🛁' },
+  { id: 'haircare', name: 'Dầu gội', icon: '🛁' },
   { id: 'perfume', name: 'Nước hoa', icon: '🌸' }
 ];
 
