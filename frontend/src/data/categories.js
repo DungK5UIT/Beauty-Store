@@ -7,7 +7,9 @@ const categories = [
   { id: 'sunscreen', name: 'Kem chống nắng', icon: '☀️' },
   { id: 'mask', name: 'Mặt nạ', icon: '🎭' },
   { id: 'essence', name: 'Tinh chất', icon: '✨' },
-  { id: 'eye-cream', name: 'Kem mắt', icon: '👁️' }
+  { id: 'eye-cream', name: 'Kem mắt', icon: '👁️' },
+  { id: 'shampoo', name: 'Dầu gội', icon: '🛁' },
+  { id: 'perfume', name: 'Nước hoa', icon: '🌸' }
 ];
 
 export default categories;
