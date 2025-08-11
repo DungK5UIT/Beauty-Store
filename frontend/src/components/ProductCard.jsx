@@ -60,24 +60,24 @@ const ProductCard = ({ product, onAddToCart }) => {
     >
 
       {/* Extra Tag ở góc phải */}
-      {tags && (
-        <span className="absolute top-3 right-3 z-10 bg-transparent border border-gray-400 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
-          {tags}
-        </span>
-      )}
+{tags && (
+  <span className="absolute top-3 right-3 z-10 bg-transparent border border-gray-400 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
+    {tags}
+  </span>
+)}
 
       {/* Product Image */}
       <div
-        className={`relative overflow-hidden rounded-lg flex items-center justify-center ${
+        className={`relative overflow-hidden rounded-lg ${
           rating === 5
             ? 'bg-gradient-to-br from-yellow-50 to-amber-50'
             : 'bg-gray-50'
-        } w-full h-[200px]`}
+        }`}
       >
         <img
           src={image}
           alt={name}
-          className="max-w-[80%] max-h-[80%] object-contain transition-transform duration-300 group-hover:scale-105"
+        className="max-w-[50%] max-h-[50%] object-contain mx-auto transition-transform duration-300 group-hover:scale-105"
         />
 
         {/* Quick Add Button */}
