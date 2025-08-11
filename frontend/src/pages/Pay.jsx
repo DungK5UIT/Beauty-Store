@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, MapPin, Phone, Mail, CreditCard,
-  Truck, Check, QrCode, Shield, User
+  Truck, Check, QrCode, Shield, User, Banknote, Loader2
 } from 'lucide-react';
 import axios from 'axios';
 
-// Hàm format giá tiền từ Cart
+// Hàm format giá tiền
 const formatCurrency = (value) => {
   if (!value) return '';
   return Number(value).toLocaleString('vi-VN') + ' VNĐ';
@@ -25,6 +25,8 @@ const Pay = () => {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [showMomoQR, setShowMomoQR] = useState(false);
   const [error, setError] = useState('');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [orderId, setOrderId] = useState(null);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
 
@@ -39,8 +41,18 @@ const Pay = () => {
       try {
         const response = await axios.get(`https://deploy-backend-production-e64e.up.railway.app/api/cart/${user.id}`);
         setCartItems(response.data);
+        
+        // Pre-fill user info if available
+        if (user) {
+          setShippingInfo(prev => ({
+            ...prev,
+            fullName: user.fullName || '',
+            email: user.email || '',
+            phone: user.phone || ''
+          }));
+        }
       } catch (err) {
-        setError(err.response?.data || 'Không thể tải giỏ hàng');
+        setError(err.response?.data?.message || 'Không thể tải giỏ hàng');
         console.error('Fetch cart failed:', err.response || err);
       }
     };
@@ -59,21 +71,111 @@ const Pay = () => {
     setShowMomoQR(method === 'momo');
   };
 
-  const handlePlaceOrder = () => {
-    if (!user || !user.id) {
-      setError('Vui lòng đăng nhập để đặt hàng');
-      navigate('/login', { state: { from: '/pay' } });
-      return;
+  const validateForm = () => {
+    if (!shippingInfo.fullName) {
+      setError('Vui lòng nhập họ và tên');
+      return false;
+    }
+    if (!shippingInfo.phone) {
+      setError('Vui lòng nhập số điện thoại');
+      return false;
+    }
+    if (!/^\d{10,11}$/.test(shippingInfo.phone)) {
+      setError('Số điện thoại không hợp lệ');
+      return false;
+    }
+    if (!shippingInfo.address) {
+      setError('Vui lòng nhập địa chỉ giao hàng');
+      return false;
+    }
+    if (!shippingInfo.city) {
+      setError('Vui lòng chọn thành phố');
+      return false;
+    }
+    if (!shippingInfo.district) {
+      setError('Vui lòng chọn quận/huyện');
+      return false;
     }
     if (!paymentMethod) {
       setError('Vui lòng chọn phương thức thanh toán');
-      return;
+      return false;
     }
-    if (!shippingInfo.fullName || !shippingInfo.phone || !shippingInfo.address) {
-      setError('Vui lòng điền đầy đủ thông tin giao hàng');
-      return;
+    return true;
+  };
+
+  const createOrder = async () => {
+    try {
+      const orderData = {
+        userId: user.id,
+        items: cartItems.map(item => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        shippingInfo,
+        paymentMethod,
+        totalAmount: total
+      };
+
+      const response = await axios.post(
+        'https://deploy-backend-production-e64e.up.railway.app/api/orders',
+        orderData,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      return response.data;
+    } catch (err) {
+      console.error('Error creating order:', err);
+      throw err;
     }
-    alert('Đặt hàng thành công!');
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!validateForm()) return;
+
+    setIsProcessingPayment(true);
+    setError('');
+
+    try {
+      const newOrder = await createOrder();
+      setOrderId(newOrder.id);
+
+      if (paymentMethod === 'vnpay') {
+        // Initiate VNPay payment
+        const vnpayResponse = await axios.post(
+          'https://deploy-backend-production-e64e.up.railway.app/api/pay/vnpay/initiate',
+          { orderId: newOrder.id },
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+        
+        // Redirect to VNPay payment page
+        window.location.href = vnpayResponse.data.paymentUrl;
+      } else if (paymentMethod === 'momo') {
+        // For demo purposes - in real app you would call Momo API
+        alert('Vui lòng quét mã QR MoMo để thanh toán');
+      } else {
+        // COD or other methods
+        navigate('/order-success', { 
+          state: { 
+            orderId: newOrder.id,
+            paymentMethod
+          } 
+        });
+      }
+    } catch (err) {
+      console.error('Payment error:', err);
+      setError(err.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng');
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   const total = cartItems.reduce(
@@ -86,7 +188,11 @@ const Pay = () => {
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <button onClick={() => navigate('/cart')} className="p-2 hover:bg-white rounded-full transition-colors">
+          <button 
+            onClick={() => navigate('/cart')} 
+            className="p-2 hover:bg-white rounded-full transition-colors"
+            disabled={isProcessingPayment}
+          >
             <ArrowLeft className="w-6 h-6 text-gray-600" />
           </button>
           <div>
@@ -95,7 +201,11 @@ const Pay = () => {
           </div>
         </div>
 
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg">
+            {error}
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column */}
@@ -122,6 +232,7 @@ const Pay = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Nhập họ và tên"
+                    disabled={isProcessingPayment}
                   />
                 </div>
 
@@ -137,6 +248,7 @@ const Pay = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Nhập số điện thoại"
+                    disabled={isProcessingPayment}
                   />
                 </div>
 
@@ -152,6 +264,7 @@ const Pay = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Nhập email"
+                    disabled={isProcessingPayment}
                   />
                 </div>
 
@@ -166,6 +279,7 @@ const Pay = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Số nhà, tên đường"
+                    disabled={isProcessingPayment}
                   />
                 </div>
 
@@ -176,6 +290,7 @@ const Pay = () => {
                     value={shippingInfo.city}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    disabled={isProcessingPayment}
                   >
                     <option value="">Chọn thành phố</option>
                     <option value="hanoi">Hà Nội</option>
@@ -191,6 +306,7 @@ const Pay = () => {
                     value={shippingInfo.district}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    disabled={isProcessingPayment}
                   >
                     <option value="">Chọn quận/huyện</option>
                     <option value="district1">Quận 1</option>
@@ -211,37 +327,47 @@ const Pay = () => {
               </div>
 
               <div className="space-y-4">
-                {['cod', 'card', 'momo'].map((method) => {
+                {['cod', 'card', 'momo', 'vnpay'].map((method) => {
                   const label =
                     method === 'cod'
                       ? 'Thanh toán khi nhận hàng (COD)'
                       : method === 'card'
                       ? 'Thẻ tín dụng/Ghi nợ'
-                      : 'Ví MoMo';
+                      : method === 'momo'
+                      ? 'Ví MoMo'
+                      : 'Thanh toán VNPay';
                   const desc =
                     method === 'cod'
                       ? 'Thanh toán bằng tiền mặt khi nhận hàng'
                       : method === 'card'
                       ? 'Visa, MasterCard, JCB'
-                      : 'Thanh toán qua ví điện tử MoMo';
+                      : method === 'momo'
+                      ? 'Thanh toán qua ví điện tử MoMo'
+                      : 'Thanh toán qua cổng VNPay';
                   const bg =
                     method === 'cod'
                       ? 'bg-orange-100 text-orange-600'
                       : method === 'card'
                       ? 'bg-blue-100 text-blue-600'
-                      : 'bg-pink-100 text-pink-600';
+                      : method === 'momo'
+                      ? 'bg-pink-100 text-pink-600'
+                      : 'bg-purple-100 text-purple-600';
                   const selected =
                     paymentMethod === method
                       ? method === 'momo'
                         ? 'border-pink-500 bg-pink-50'
+                        : method === 'vnpay'
+                        ? 'border-purple-500 bg-purple-50'
                         : 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300';
 
                   return (
                     <div
                       key={method}
-                      onClick={() => handlePaymentMethodChange(method)}
-                      className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${selected}`}
+                      onClick={() => !isProcessingPayment && handlePaymentMethodChange(method)}
+                      className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${selected} ${
+                        isProcessingPayment ? 'opacity-70 cursor-not-allowed' : ''
+                      }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -252,6 +378,8 @@ const Pay = () => {
                               </div>
                             ) : method === 'card' ? (
                               <CreditCard className="w-5 h-5" />
+                            ) : method === 'vnpay' ? (
+                              <Banknote className="w-5 h-5" />
                             ) : (
                               <Truck className="w-5 h-5" />
                             )}
@@ -262,7 +390,10 @@ const Pay = () => {
                           </div>
                         </div>
                         {paymentMethod === method && (
-                          <div className="bg-blue-500 rounded-full p-1">
+                          <div className={`rounded-full p-1 ${
+                            method === 'momo' ? 'bg-pink-500' : 
+                            method === 'vnpay' ? 'bg-purple-500' : 'bg-blue-500'
+                          }`}>
                             <Check className="w-4 h-4 text-white" />
                           </div>
                         )}
@@ -285,8 +416,7 @@ const Pay = () => {
                     </div>
                     <h3 className="font-semibold text-gray-900 mb-2">Quét mã QR để thanh toán</h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      Số tiền:{' '}
-                      <span className="font-bold text-pink-600">{formatCurrency(total)}</span>
+                      Số tiền: <span className="font-bold text-pink-600">{formatCurrency(total)}</span>
                     </p>
                     <p className="text-xs text-gray-500">
                       Mở ứng dụng MoMo và quét mã QR để thanh toán
@@ -336,9 +466,19 @@ const Pay = () => {
               {/* Place Order Button */}
               <button
                 onClick={handlePlaceOrder}
-        className="w-full bg-[#483C54] hover:bg-[#5a4d68] text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
+                disabled={isProcessingPayment}
+                className={`w-full bg-[#483C54] hover:bg-[#5a4d68] text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 ease-in-out ${
+                  isProcessingPayment ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-[0.98]'
+                } shadow-md hover:shadow-lg flex items-center justify-center gap-2`}
               >
-                Đặt hàng ngay
+                {isProcessingPayment ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Đang xử lý...
+                  </>
+                ) : (
+                  'Đặt hàng ngay'
+                )}
               </button>
 
               {/* Security Notice */}
