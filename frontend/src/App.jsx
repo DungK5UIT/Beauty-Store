@@ -9,6 +9,7 @@ import Cart from './pages/Cart';
 import Pay from './pages/Pay';
 import Home from './pages/Home';
 import ChatBox from './components/ChatBox';
+import Catagory from './pages/Catagory';
 const App = () => {
   return (
     <AuthProvider>
@@ -22,6 +23,7 @@ const App = () => {
             <Route path="/cart" element={<Cart />} />
             <Route path="/pay" element={<Pay />} />
             <Route path="*" element={<div className="text-center p-20">404 - Trang không tồn tại</div>} />
+            <Route path="/catagory" element={<Catagory />} />
           </Routes>
           <ChatBox/>
         </main>
