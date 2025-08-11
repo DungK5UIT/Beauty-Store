@@ -21,14 +21,6 @@ const ProductCard = ({ product, onAddToCart }) => {
     reviewCount,
   } = product;
 
-  // Badge check
-  const isNew = tags?.toLowerCase().includes('new') || tags?.toLowerCase().includes('mới');
-  const isBestSeller = tags?.toLowerCase().includes('bán chạy') || tags?.toLowerCase().includes('best seller');
-
-  const handleFavoriteClick = () => {
-    setIsFavorited((prev) => !prev);
-  };
-
   const handleAddToCart = () => {
     if (onAddToCart) {
       onAddToCart(product);
@@ -54,24 +46,24 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   return (
     <div
-      className="relative transition-all duration-300 overflow-hidden group"
+      className="relative transition-all duration-300 overflow-hidden group max-w-[200px] mx-auto"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Extra Tag ở góc phải */}
+      {/* Tag góc phải */}
       {tags && (
         <span className="absolute top-3 right-3 z-10 bg-transparent border border-gray-400 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
           {tags}
         </span>
       )}
 
-      {/* Product Image */}
+      {/* Khung ảnh nhỏ */}
       <div
         className={`relative overflow-hidden rounded-lg ${
           rating === 5
             ? 'bg-gradient-to-br from-yellow-50 to-amber-50'
             : 'bg-gray-50'
-        } aspect-square w-full flex items-center justify-center`}
+        } w-[150px] h-[150px] flex items-center justify-center mx-auto`}
       >
         <img
           src={image}
@@ -79,45 +71,45 @@ const ProductCard = ({ product, onAddToCart }) => {
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
-        {/* Quick Add Button */}
+        {/* Nút thêm vào giỏ */}
         <div
-          className={`absolute inset-x-0 bottom-0 p-4 transition-all duration-300
+          className={`absolute inset-x-0 bottom-0 p-2 transition-all duration-300
             ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}
         >
           <button
             onClick={handleAddToCart}
-            className="w-full bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors duration-200 font-medium flex items-center justify-center gap-2"
+            className="w-full bg-black text-white py-1 px-2 rounded-md hover:bg-gray-800 transition-colors duration-200 text-sm flex items-center justify-center gap-1"
           >
-            <ShoppingCart size={16} /> Thêm vào giỏ
+            <ShoppingCart size={14} /> Thêm
           </button>
         </div>
       </div>
 
-      {/* Product Info */}
-      <div className="p-4">
-        {/* Category */}
+      {/* Thông tin sản phẩm */}
+      <div className="p-3 text-center">
+        {/* Loại sản phẩm */}
         <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
           {category}
         </p>
 
-        {/* Product Name */}
-        <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 leading-tight">
+        {/* Tên */}
+        <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 leading-tight text-sm">
           {name}
         </h3>
 
-        {/* Rating */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex items-center gap-1">{renderStars()}</div>
-          <span className="text-xs text-gray-500">{reviewCount}</span>
+        {/* Đánh giá */}
+        <div className="flex items-center gap-1 justify-center mb-2">
+          {renderStars()}
+          <span className="text-xs text-gray-500">({reviewCount})</span>
         </div>
 
-        {/* Price */}
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-lg font-semibold text-gray-900">
+        {/* Giá */}
+        <div className="flex items-center justify-center gap-2">
+          <span className="text-sm font-semibold text-gray-900">
             {formatCurrency(price)}
           </span>
           {originalPrice && originalPrice > price && (
-            <span className="text-sm text-gray-400 line-through">
+            <span className="text-xs text-gray-400 line-through">
               {formatCurrency(originalPrice)}
             </span>
           )}
