@@ -10,6 +10,7 @@ import Pay from './pages/Pay';
 import Home from './pages/Home';
 import ChatBox from './components/ChatBox';
 import Catagory from './pages/Catagory';
+import Contact from './pages/Contact';
 const App = () => {
   return (
     <AuthProvider>
@@ -24,6 +25,8 @@ const App = () => {
             <Route path="/pay" element={<Pay />} />
             <Route path="*" element={<div className="text-center p-20">404 - Trang không tồn tại</div>} />
             <Route path="/catagory" element={<Catagory />} />
+            <Route path="/contact" element={<Contact />} />
+           
           </Routes>
           <ChatBox/>
         </main>
