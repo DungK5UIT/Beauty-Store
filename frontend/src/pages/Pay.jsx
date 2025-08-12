@@ -21,14 +21,14 @@ const Pay = () => {
     address: '',
     city: '',
     district: '',
-    note: '' // Thêm trường note
+    note: ''
   });
   const [paymentMethod, setPaymentMethod] = useState('');
   const [showMomoQR, setShowMomoQR] = useState(false);
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Thêm state cho loading
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  
+
   // Lấy thông tin user an toàn hơn
   const getUserInfo = () => {
     try {
@@ -50,7 +50,6 @@ const Pay = () => {
       }
 
       try {
-        // Sử dụng base URL để dễ dàng thay đổi
         const apiClient = axios.create({
           baseURL: 'https://deploy-backend-production-e64e.up.railway.app'
         });
@@ -62,7 +61,7 @@ const Pay = () => {
       }
     };
     fetchCart();
-  }, [navigate, user?.id]); // Phụ thuộc vào user.id để fetch lại khi user thay đổi
+  }, [navigate, user?.id]);
 
   const handleInputChange = (e) => {
     setShippingInfo({
@@ -73,71 +72,80 @@ const Pay = () => {
 
   const handlePaymentMethodChange = (method) => {
     setPaymentMethod(method);
-    // Ẩn QR Momo nếu không phải phương thức Momo
     setShowMomoQR(method === 'momo');
   };
 
   const handlePlaceOrder = async () => {
-    // Xóa lỗi cũ khi người dùng thử lại
     setError('');
+    setIsLoading(true);
 
     // --- VALIDATION ---
     if (!user || !user.id) {
       setError('Vui lòng đăng nhập để đặt hàng');
       navigate('/login', { state: { from: '/pay' } });
+      setIsLoading(false);
       return;
     }
     if (cartItems.length === 0) {
       setError('Giỏ hàng của bạn đang trống.');
+      setIsLoading(false);
       return;
     }
     if (!paymentMethod) {
       setError('Vui lòng chọn phương thức thanh toán');
+      setIsLoading(false);
       return;
     }
     if (!shippingInfo.fullName || !shippingInfo.phone || !shippingInfo.address || !shippingInfo.city || !shippingInfo.district) {
       setError('Vui lòng điền đầy đủ các trường thông tin giao hàng có dấu *');
+      setIsLoading(false);
       return;
     }
-
-    setIsLoading(true);
 
     // --- TẠO DỮ LIỆU ĐƠN HÀNG ---
     const fullAddress = `${shippingInfo.address}, ${shippingInfo.district}, ${shippingInfo.city}`;
     const orderData = {
       userId: user.id,
-      paymentMethod: paymentMethod.toUpperCase(), // Gửi lên backend dạng 'VNPAY', 'COD'
+      paymentMethod: paymentMethod.toUpperCase(),
       shippingAddress: fullAddress,
       note: shippingInfo.note || 'Không có ghi chú'
     };
 
     try {
-      // --- XỬ LÝ THEO PHƯƠNG THỨC THANH TOÁN ---
+      const apiClient = axios.create({
+        baseURL: 'https://deploy-backend-production-e64e.up.railway.app'
+      });
+
       if (paymentMethod === 'vnpay') {
         console.log("Initiating VNPay payment with data:", orderData);
         
-        const apiClient = axios.create({
-          baseURL: 'https://deploy-backend-production-e64e.up.railway.app'
-        });
-        
-        // Gọi API /api/orders/create để nhận paymentUrl
+        // Gọi API /api/orders/create
         const response = await apiClient.post('/api/orders/create', orderData);
+        console.log("VNPay response:", response.data);
 
         if (response.data && response.data.paymentUrl) {
-          // Chuyển hướng người dùng đến cổng thanh toán VNPay
           window.location.href = response.data.paymentUrl;
         } else {
-          setError("Không nhận được URL thanh toán từ máy chủ. Vui lòng thử lại.");
+          setError('Không nhận được URL thanh toán từ máy chủ. Vui lòng thử lại.');
+          console.error("Missing paymentUrl in response:", response.data);
         }
-      } else {
-        // Xử lý cho các phương thức khác như COD
-        // Hiện tại chỉ hiển thị thông báo
+      } else if (paymentMethod === 'cod') {
+        const response = await apiClient.post('/api/orders/create', orderData);
+        console.log("COD order response:", response.data);
         alert('Đặt hàng thành công với phương thức thanh toán khi nhận hàng!');
-        navigate('/order-success'); // Chuyển đến trang thành công
+        navigate('/order-success');
+      } else if (paymentMethod === 'momo') {
+        // TODO: Xử lý thanh toán MoMo
+        setError('Phương thức thanh toán MoMo chưa được triển khai.');
+      } else {
+        setError('Phương thức thanh toán không được hỗ trợ.');
       }
     } catch (err) {
       console.error('Order placement failed:', err.response || err);
-      setError(err.response?.data?.message || 'Đặt hàng thất bại. Đã có lỗi xảy ra.');
+      const errorMessage = err.response?.data?.message?.includes('Invalid') 
+        ? 'Dữ liệu gửi sang VNPay không đúng định dạng. Vui lòng thử lại.'
+        : err.response?.data?.message || 'Đặt hàng thất bại. Vui lòng thử lại.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -147,8 +155,7 @@ const Pay = () => {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  
-  // Danh sách các phương thức thanh toán
+
   const paymentOptions = [
     { id: 'cod', label: 'Thanh toán khi nhận hàng (COD)', desc: 'Thanh toán bằng tiền mặt khi nhận hàng', icon: <Truck className="w-5 h-5" />, color: 'bg-orange-100 text-orange-600' },
     { id: 'vnpay', label: 'Cổng thanh toán VNPAY', desc: 'Hỗ trợ Thẻ ATM, Visa, QR Pay', icon: <QrCode className="w-5 h-5" />, color: 'bg-cyan-100 text-cyan-600' },
@@ -184,7 +191,6 @@ const Pay = () => {
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                {/* Các input cho thông tin giao hàng */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <User className="w-4 h-4 inline mr-2" />
@@ -284,7 +290,6 @@ const Pay = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-8">
               <h3 className="text-xl font-bold text-gray-900 mb-6">Đơn hàng của bạn</h3>
 
-              {/* Order Items */}
               <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
                 {cartItems.length > 0 ? cartItems.map((item) => (
                   <div key={item.id} className="flex justify-between items-start gap-3">
@@ -299,7 +304,6 @@ const Pay = () => {
                 )) : <p className="text-gray-500 text-sm">Giỏ hàng của bạn đang trống.</p>}
               </div>
 
-              {/* Order Summary */}
               <div className="border-t border-gray-200 pt-4 space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Tạm tính</span>
@@ -315,7 +319,6 @@ const Pay = () => {
                 </div>
               </div>
 
-              {/* Place Order Button */}
               <button
                 onClick={handlePlaceOrder}
                 disabled={isLoading || cartItems.length === 0}
@@ -331,7 +334,6 @@ const Pay = () => {
                 )}
               </button>
 
-              {/* Security Notice */}
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
                   <Shield className="w-4 h-4" />
