@@ -13,14 +13,16 @@ const PaymentForm = () => {
     setError('');
     setIsLoading(true);
 
+    // Validate dữ liệu
     if (!orderId || !amount || !orderInfo) {
-      setError('Vui lòng điền đầy đủ các trường');
+      setError('Vui lòng điền đầy đủ thông tin.');
       setIsLoading(false);
       return;
     }
 
-    if (isNaN(amount) || Number(amount) <= 0) {
-      setError('Số tiền phải là số dương');
+    const numericAmount = Number(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      setError('Số tiền phải là số dương.');
       setIsLoading(false);
       return;
     }
@@ -30,26 +32,27 @@ const PaymentForm = () => {
         'https://deploy-backend-production-e64e.up.railway.app/api/pay/vnpay/initiate',
         {
           orderId,
-          amount,
-          orderInfo,
-          ipAddr: '127.0.0.1', // Giả định localhost, thực tế lấy từ client
+          amount: numericAmount, // đảm bảo là số
+          orderInfo
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            // Nếu cần JWT, thêm: 'Authorization': 'Bearer your-token-here'
-          },
+            'Content-Type': 'application/json'
+          }
         }
       );
 
       const data = response.data;
+      console.log('VNPay response:', data);
+
       if (response.status === 200 && data.paymentUrl) {
         window.location.href = data.paymentUrl; // Chuyển hướng đến VNPay
       } else {
-        setError(data.message || 'Không thể khởi tạo thanh toán');
+        setError(data.message || 'Không thể khởi tạo thanh toán.');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Lỗi hệ thống, vui lòng thử lại');
+      console.error('Thanh toán lỗi:', err);
+      setError(err.response?.data?.message || 'Lỗi hệ thống, vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +68,7 @@ const PaymentForm = () => {
             type="text"
             value={orderId}
             onChange={(e) => setOrderId(e.target.value)}
-            className="mt-1 p-2 w-full border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 p-2 w-full border rounded-md"
             placeholder="Nhập mã đơn hàng"
             disabled={isLoading}
           />
@@ -76,7 +79,7 @@ const PaymentForm = () => {
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="mt-1 p-2 w-full border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 p-2 w-full border rounded-md"
             placeholder="Nhập số tiền"
             disabled={isLoading}
           />
@@ -87,7 +90,7 @@ const PaymentForm = () => {
             type="text"
             value={orderInfo}
             onChange={(e) => setOrderInfo(e.target.value)}
-            className="mt-1 p-2 w-full border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 p-2 w-full border rounded-md"
             placeholder="Nhập thông tin đơn hàng"
             disabled={isLoading}
           />
