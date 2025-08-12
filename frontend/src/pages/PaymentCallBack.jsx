@@ -44,7 +44,6 @@ const PaymentCallback = () => {
           setTimeout(() => navigate('/order-success'), 3000);
         } else {
           setStatus('error');
-          // Xử lý mã lỗi VNPay cụ thể
           const responseCode = queryParams.vnp_ResponseCode;
           switch (responseCode) {
             case '03':
@@ -66,7 +65,7 @@ const PaymentCallback = () => {
               setMessage('Hệ thống ngân hàng đang bảo trì. Vui lòng thử lại sau.');
               break;
             case '24':
-              setMessage('Giao dịch đã bị hủy. Vui lòng thử thanh toán lại.');
+              setMessage('Giao dịch đã bị hủy hoặc quá thời gian chờ thanh toán. Vui lòng thử lại.');
               break;
             case '79':
               setMessage('Xác thực sai quá số lần cho phép. Vui lòng kiểm tra thông tin thanh toán.');
@@ -78,7 +77,7 @@ const PaymentCallback = () => {
               setMessage('Lỗi hệ thống VNPay. Vui lòng thử lại sau.');
               break;
             default:
-              setMessage(response.data.message || 'Thanh toán thất bại. Vui lòng thử lại.');
+              setMessage(response.data.message || 'Giao dịch đã quá thời gian chờ thanh toán hoặc bị hủy. Vui lòng thử lại.');
           }
         }
       } catch (err) {
@@ -88,7 +87,7 @@ const PaymentCallback = () => {
           queryParams,
         });
         setStatus('error');
-        setMessage(err.response?.data?.message || 'Lỗi khi xử lý kết quả thanh toán. Vui lòng thử lại.');
+        setMessage(err.response?.data?.message || 'Giao dịch đã quá thời gian chờ thanh toán. Vui lòng thử lại.');
       }
     };
 
