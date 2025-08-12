@@ -12,8 +12,6 @@ import ChatBox from './components/ChatBox';
 import Catagory from './pages/Catagory';
 import Contact from './pages/Contact';
 import PaymentCallBack from './pages/PaymentCallBack';
-import PaymentForm from './pages/PaymentForm';
-import PaymentResult from './pages/PaymentResult';
 const App = () => {
   return (
     <AuthProvider>
@@ -25,11 +23,11 @@ const App = () => {
             <Route path="/product" element={<Product />} />
             <Route path="/login" element={<Login />} />
             <Route path="/cart" element={<Cart />} />
-            <Route path="/pay" element={<PaymentForm />} />
+            <Route path="/pay" element={<Pay />} />
             <Route path="*" element={<div className="text-center p-20">404 - Trang không tồn tại</div>} />
             <Route path="/catagory" element={<Catagory />} />
             <Route path="/contact" element={<Contact />} />
-           <Route path="/payment-callback" element={<PaymentResult/>} />
+           <Route path="/payment-callback" element={<PaymentCallBack/>} />
 
           </Routes>
           <ChatBox/>

@@ -32,7 +32,7 @@ const PaymentCallback = () => {
       try {
         const apiClient = axios.create({
           baseURL: 'https://deploy-backend-production-e64e.up.railway.app',
-          timeout: 10000,
+          timeout: 50000,
         });
 
         // Gửi GET đến backend callback
