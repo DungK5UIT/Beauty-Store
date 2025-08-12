@@ -25,6 +25,7 @@ const Pay = () => {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [showMomoQR, setShowMomoQR] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
 
@@ -59,7 +60,7 @@ const Pay = () => {
     setShowMomoQR(method === 'momo');
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!user || !user.id) {
       setError('Vui lòng đăng nhập để đặt hàng');
       navigate('/login', { state: { from: '/pay' } });
@@ -69,11 +70,41 @@ const Pay = () => {
       setError('Vui lòng chọn phương thức thanh toán');
       return;
     }
-    if (!shippingInfo.fullName || !shippingInfo.phone || !shippingInfo.address) {
+    if (!shippingInfo.fullName || !shippingInfo.phone || !shippingInfo.address || !shippingInfo.city || !shippingInfo.district) {
       setError('Vui lòng điền đầy đủ thông tin giao hàng');
       return;
     }
-    alert('Đặt hàng thành công!');
+
+    setLoading(true);
+    setError('');
+
+    try {
+      if (paymentMethod === 'vnpay') {
+        const orderInfo = `Thanh toán đơn hàng cho ${user.username || 'Khách hàng'} - ${new Date().toLocaleString('vi-VN')}`;
+        const response = await axios.post('https://deploy-backend-production-e64e.up.railway.app/api/payment/create', {
+          amount: total,
+          orderInfo,
+          orderId: `ORDER_${Date.now()}`,
+          ipAddr: '127.0.0.1',
+          shippingInfo
+        });
+
+        if (response.data.paymentUrl) {
+          window.location.href = response.data.paymentUrl;
+        } else {
+          setError('Không thể tạo URL thanh toán VNPay');
+        }
+      } else if (paymentMethod === 'momo') {
+        alert('Thanh toán MoMo thành công! (QR đã được quét)');
+      } else {
+        alert('Đặt hàng thành công!');
+      }
+    } catch (err) {
+      setError('Lỗi khi xử lý thanh toán: ' + (err.response?.data?.message || err.message));
+      console.error('Place order failed:', err.response || err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const total = cartItems.reduce(
@@ -122,6 +153,7 @@ const Pay = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Nhập họ và tên"
+                    required
                   />
                 </div>
 
@@ -137,6 +169,7 @@ const Pay = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Nhập số điện thoại"
+                    required
                   />
                 </div>
 
@@ -166,6 +199,7 @@ const Pay = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Số nhà, tên đường"
+                    required
                   />
                 </div>
 
@@ -176,6 +210,7 @@ const Pay = () => {
                     value={shippingInfo.city}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    required
                   >
                     <option value="">Chọn thành phố</option>
                     <option value="hanoi">Hà Nội</option>
@@ -191,6 +226,7 @@ const Pay = () => {
                     value={shippingInfo.district}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                    required
                   >
                     <option value="">Chọn quận/huyện</option>
                     <option value="district1">Quận 1</option>
@@ -211,29 +247,37 @@ const Pay = () => {
               </div>
 
               <div className="space-y-4">
-                {['cod', 'card', 'momo'].map((method) => {
+                {['cod', 'card', 'momo', 'vnpay'].map((method) => {
                   const label =
                     method === 'cod'
                       ? 'Thanh toán khi nhận hàng (COD)'
                       : method === 'card'
                       ? 'Thẻ tín dụng/Ghi nợ'
-                      : 'Ví MoMo';
+                      : method === 'momo'
+                      ? 'Ví MoMo'
+                      : 'Thanh toán VNPay';
                   const desc =
                     method === 'cod'
                       ? 'Thanh toán bằng tiền mặt khi nhận hàng'
                       : method === 'card'
                       ? 'Visa, MasterCard, JCB'
-                      : 'Thanh toán qua ví điện tử MoMo';
+                      : method === 'momo'
+                      ? 'Thanh toán qua ví điện tử MoMo'
+                      : 'Thanh toán qua cổng VNPay';
                   const bg =
                     method === 'cod'
                       ? 'bg-orange-100 text-orange-600'
                       : method === 'card'
                       ? 'bg-blue-100 text-blue-600'
-                      : 'bg-pink-100 text-pink-600';
+                      : method === 'momo'
+                      ? 'bg-pink-100 text-pink-600'
+                      : 'bg-purple-100 text-purple-600';
                   const selected =
                     paymentMethod === method
                       ? method === 'momo'
                         ? 'border-pink-500 bg-pink-50'
+                        : method === 'vnpay'
+                        ? 'border-purple-500 bg-purple-50'
                         : 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300';
 
@@ -252,6 +296,10 @@ const Pay = () => {
                               </div>
                             ) : method === 'card' ? (
                               <CreditCard className="w-5 h-5" />
+                            ) : method === 'vnpay' ? (
+                              <div className="w-5 h-5 bg-purple-600 rounded-full flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">V</span>
+                              </div>
                             ) : (
                               <Truck className="w-5 h-5" />
                             )}
@@ -336,9 +384,10 @@ const Pay = () => {
               {/* Place Order Button */}
               <button
                 onClick={handlePlaceOrder}
-        className="w-full bg-[#483C54] hover:bg-[#5a4d68] text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
+                disabled={loading}
+                className={`w-full bg-[#483C54] text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#5a4d68]'}`}
               >
-                Đặt hàng ngay
+                {loading ? 'Đang xử lý...' : 'Đặt hàng ngay'}
               </button>
 
               {/* Security Notice */}
