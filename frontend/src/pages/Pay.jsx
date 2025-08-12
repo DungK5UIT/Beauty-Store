@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Phone, Mail, CreditCard, Truck, Check, Shield, User, Loader2 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  ArrowLeft, MapPin, Phone, Mail, CreditCard,
+  Truck, Check, QrCode, Shield, User, Loader2
+} from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
-const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
-
+// Hàm format giá tiền từ Cart
 const formatCurrency = (value) => {
   if (!value && value !== 0) return '';
   return Number(value).toLocaleString('vi-VN') + ' VNĐ';
 };
 
 const Pay = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [cartItems, setCartItems] = useState([]);
   const [shippingInfo, setShippingInfo] = useState({
     fullName: '',
@@ -22,60 +28,46 @@ const Pay = () => {
     note: ''
   });
   const [paymentMethod, setPaymentMethod] = useState('');
+  const [showMomoQR, setShowMomoQR] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
-  // Lấy thông tin user từ localStorage
-  const getUserInfo = () => {
-    try {
-      const userString = localStorage.getItem('user');
-      return userString ? JSON.parse(userString) : null;
-    } catch (e) {
-      console.error("Failed to parse user from localStorage", e);
-      return null;
-    }
-  };
-  const user = getUserInfo();
-
-  // Lấy token từ localStorage (giả định token được lưu khi đăng nhập)
-  const getAuthToken = () => {
-    return localStorage.getItem('token') || '';
-  };
+  // Lấy totalAmount từ state của Cart.js (nếu có)
+  const totalAmount = location.state?.totalAmount || 0;
 
   useEffect(() => {
     const fetchCart = async () => {
       if (!user || !user.id) {
         setError('Vui lòng đăng nhập để thanh toán');
-        navigate('/login', { state: { from: '/pay' } });
+        setToast({ show: true, message: 'Vui lòng đăng nhập để thanh toán', type: 'error' });
+        setTimeout(() => navigate('/login', { state: { from: '/pay' } }), 2000);
         return;
       }
 
       try {
         const apiClient = axios.create({
-          baseURL: API_BASE_URL,
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`
-          }
+          baseURL: 'https://deploy-backend-production-e64e.up.railway.app',
+          timeout: 10000,
         });
         const response = await apiClient.get(`/api/cart/${user.id}`);
         setCartItems(response.data);
-
-        // Tự động điền thông tin user nếu có
-        setShippingInfo((prev) => ({
-          ...prev,
-          fullName: user.full_name || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          address: user.address || ''
-        }));
       } catch (err) {
-        setError(err.response?.data?.message || 'Không thể tải giỏ hàng');
+        const status = err.response?.status;
+        let message = err.response?.data?.message || 'Không thể tải giỏ hàng';
+        if (status === 401) {
+          message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
+          logout();
+          navigate('/login');
+        }
+        setError(message);
+        setToast({ show: true, message, type: 'error' });
+        setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
         console.error('Fetch cart failed:', err.response || err);
       }
     };
     fetchCart();
-  }, [navigate, user]);
+  }, [navigate, user, logout]);
 
   const handleInputChange = (e) => {
     setShippingInfo({
@@ -86,93 +78,91 @@ const Pay = () => {
 
   const handlePaymentMethodChange = (method) => {
     setPaymentMethod(method);
-  };
-
-  const validatePhone = (phone) => {
-    const phoneRegex = /^0\d{9}$/;
-    return phoneRegex.test(phone);
+    setShowMomoQR(method === 'momo');
   };
 
   const handlePlaceOrder = async () => {
     setError('');
     setIsLoading(true);
 
-    // Validation
+    // --- VALIDATION ---
     if (!user || !user.id) {
       setError('Vui lòng đăng nhập để đặt hàng');
-      navigate('/login', { state: { from: '/pay' } });
+      setToast({ show: true, message: 'Vui lòng đăng nhập để đặt hàng', type: 'error' });
+      setTimeout(() => navigate('/login', { state: { from: '/pay' } }), 2000);
       setIsLoading(false);
       return;
     }
     if (cartItems.length === 0) {
-      setError('Giỏ hàng của bạn đang trống');
+      setError('Giỏ hàng của bạn đang trống.');
+      setToast({ show: true, message: 'Giỏ hàng của bạn đang trống.', type: 'error' });
       setIsLoading(false);
       return;
     }
     if (!paymentMethod) {
       setError('Vui lòng chọn phương thức thanh toán');
+      setToast({ show: true, message: 'Vui lòng chọn phương thức thanh toán', type: 'error' });
       setIsLoading(false);
       return;
     }
     if (!shippingInfo.fullName || !shippingInfo.phone || !shippingInfo.address || !shippingInfo.city || !shippingInfo.district) {
       setError('Vui lòng điền đầy đủ các trường thông tin giao hàng có dấu *');
-      setIsLoading(false);
-      return;
-    }
-    if (!validatePhone(shippingInfo.phone)) {
-      setError('Số điện thoại không hợp lệ (phải bắt đầu bằng 0 và có 10 chữ số)');
+      setToast({ show: true, message: 'Vui lòng điền đầy đủ các trường thông tin giao hàng có dấu *', type: 'error' });
       setIsLoading(false);
       return;
     }
 
-    // Tạo dữ liệu đơn hàng
+    // --- TẠO DỮ LIỆU ĐƠN HÀNG ---
     const fullAddress = `${shippingInfo.address}, ${shippingInfo.district}, ${shippingInfo.city}`;
     const orderData = {
       userId: user.id,
       paymentMethod: paymentMethod.toUpperCase(),
       shippingAddress: fullAddress,
-      note: shippingInfo.note || 'Không có ghi chú'
+      note: shippingInfo.note || 'Không có ghi chú',
+      totalAmount: totalAmount, // Thêm totalAmount
     };
 
     try {
       const apiClient = axios.create({
-        baseURL: API_BASE_URL,
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 15000 // Tăng timeout lên 15s
+        baseURL: 'https://deploy-backend-production-e64e.up.railway.app',
+        timeout: 10000,
       });
 
       if (paymentMethod === 'vnpay') {
-        console.log("Initiating VNPay payment with data:", orderData);
+        console.log('Initiating VNPay payment with data:', orderData);
         const response = await apiClient.post('/api/orders/create', orderData);
-        console.log("VNPay response:", response.data);
+        console.log('VNPay response:', response.data);
 
-        if (response.data && response.data.paymentUrl) {
-          // Lưu orderId vào localStorage để sử dụng trong callback
-          localStorage.setItem('pendingOrderId', response.data.orderId);
-          window.location.href = response.data.paymentUrl;
+        if (response.data.paymentUrl) {
+          window.location.href = response.data.paymentUrl; // Redirect đến VNPay
         } else {
-          throw new Error('Không nhận được URL thanh toán từ máy chủ');
+          throw new Error('Không nhận được URL thanh toán từ máy chủ.');
         }
       } else if (paymentMethod === 'cod') {
         const response = await apiClient.post('/api/orders/create', orderData);
-        console.log("COD order response:", response.data);
-        
-        // Xóa giỏ hàng sau khi đặt hàng COD thành công
-        await apiClient.delete(`/api/cart/clear/${user.id}`);
-        alert('Đặt hàng thành công với phương thức thanh toán khi nhận hàng!');
-        navigate('/order-success', { state: { orderId: response.data.id } });
+        console.log('COD order response:', response.data);
+        setToast({ show: true, message: 'Đặt hàng thành công với phương thức thanh toán khi nhận hàng!', type: 'success' });
+        setTimeout(() => navigate('/order-success'), 2000);
+      } else if (paymentMethod === 'momo') {
+        setError('Phương thức thanh toán MoMo chưa được triển khai.');
+        setToast({ show: true, message: 'Phương thức thanh toán MoMo chưa được triển khai.', type: 'error' });
       } else {
-        throw new Error('Phương thức thanh toán không được hỗ trợ');
+        throw new Error('Phương thức thanh toán không được hỗ trợ.');
       }
     } catch (err) {
       console.error('Order placement failed:', err.response || err);
-      const errorMessage = err.response?.data?.message?.includes('Invalid')
-        ? 'Dữ liệu gửi sang VNPay không đúng định dạng. Vui lòng thử lại.'
-        : err.response?.data?.message || 'Đặt hàng thất bại. Vui lòng thử lại sau.';
-      setError(errorMessage);
+      const status = err.response?.status;
+      let message = err.response?.data?.message || 'Đặt hàng thất bại. Vui lòng thử lại.';
+      if (status === 401) {
+        message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
+        logout();
+        navigate('/login');
+      } else if (err.response?.data?.message?.includes('Invalid')) {
+        message = 'Dữ liệu gửi sang VNPay không đúng định dạng. Vui lòng kiểm tra giỏ hàng và thử lại.';
+      }
+      setError(message);
+      setToast({ show: true, message, type: 'error' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
     } finally {
       setIsLoading(false);
     }
@@ -185,11 +175,17 @@ const Pay = () => {
 
   const paymentOptions = [
     { id: 'cod', label: 'Thanh toán khi nhận hàng (COD)', desc: 'Thanh toán bằng tiền mặt khi nhận hàng', icon: <Truck className="w-5 h-5" />, color: 'bg-orange-100 text-orange-600' },
-    { id: 'vnpay', label: 'Cổng thanh toán VNPAY', desc: 'Hỗ trợ Thẻ ATM, Visa, QR Pay', icon: <CreditCard className="w-5 h-5" />, color: 'bg-cyan-100 text-cyan-600' }
+    { id: 'vnpay', label: 'Cổng thanh toán VNPAY', desc: 'Hỗ trợ Thẻ ATM, Visa, QR Pay', icon: <QrCode className="w-5 h-5" />, color: 'bg-cyan-100 text-cyan-600' },
+    { id: 'momo', label: 'Ví MoMo', desc: 'Thanh toán qua ví điện tử MoMo', icon: <div className="w-5 h-5 bg-pink-600 rounded-full flex items-center justify-center"><span className="text-white font-bold text-xs">M</span></div>, color: 'bg-pink-100 text-pink-600' }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
+      {toast.show && (
+        <div className={`fixed top-20 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-out ${toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
+          {toast.message}
+        </div>
+      )}
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -222,86 +218,41 @@ const Pay = () => {
                     <User className="w-4 h-4 inline mr-2" />
                     Họ và tên *
                   </label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={shippingInfo.fullName}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Nhập họ và tên"
-                  />
+                  <input type="text" name="fullName" value={shippingInfo.fullName} onChange={handleInputChange} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nhập họ và tên" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Phone className="w-4 h-4 inline mr-2" />
                     Số điện thoại *
                   </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={shippingInfo.phone}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Nhập số điện thoại (VD: 0123456789)"
-                  />
+                  <input type="tel" name="phone" value={shippingInfo.phone} onChange={handleInputChange} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nhập số điện thoại" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Mail className="w-4 h-4 inline mr-2" />
                     Email
                   </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={shippingInfo.email}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Nhập email (không bắt buộc)"
-                  />
+                  <input type="email" name="email" value={shippingInfo.email} onChange={handleInputChange} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nhập email (không bắt buộc)" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Thành phố *</label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={shippingInfo.city}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
-                    placeholder="VD: TP. Hồ Chí Minh"
-                  />
+                  <input type="text" name="city" value={shippingInfo.city} onChange={handleInputChange} className="w-full px-4 py-3 border border-gray-300 rounded-xl" placeholder="VD: TP. Hồ Chí Minh" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Quận/Huyện *</label>
-                  <input
-                    type="text"
-                    name="district"
-                    value={shippingInfo.district}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
-                    placeholder="VD: Quận 1"
-                  />
+                  <input type="text" name="district" value={shippingInfo.district} onChange={handleInputChange} className="w-full px-4 py-3 border border-gray-300 rounded-xl" placeholder="VD: Quận 1" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Địa chỉ chi tiết *</label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={shippingInfo.address}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Số nhà, tên đường, phường/xã"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Địa chỉ chi tiết *
+                  </label>
+                  <input type="text" name="address" value={shippingInfo.address} onChange={handleInputChange} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Số nhà, tên đường, phường/xã" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
-                  <textarea
-                    name="note"
-                    value={shippingInfo.note}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ghi chú cho người giao hàng (không bắt buộc)"
-                    rows="3"
-                  ></textarea>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ghi chú
+                  </label>
+                  <textarea name="note" value={shippingInfo.note} onChange={handleInputChange} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ghi chú cho người giao hàng (không bắt buộc)" rows="3"></textarea>
                 </div>
               </div>
             </div>
@@ -320,13 +271,13 @@ const Pay = () => {
                   <div
                     key={option.id}
                     onClick={() => handlePaymentMethodChange(option.id)}
-                    className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
-                      paymentMethod === option.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === option.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`${option.color} p-2 rounded-full`}>{option.icon}</div>
+                        <div className={`${option.color} p-2 rounded-full`}>
+                          {option.icon}
+                        </div>
                         <div>
                           <h3 className="font-semibold text-gray-900">{option.label}</h3>
                           <p className="text-sm text-gray-500">{option.desc}</p>
@@ -341,6 +292,18 @@ const Pay = () => {
                   </div>
                 ))}
               </div>
+
+              {showMomoQR && (
+                <div className="mt-6 p-6 bg-pink-50 rounded-xl border border-pink-200">
+                  <div className="text-center">
+                    <img src="https://placehold.co/200x200/FFFFFF/E91E63?text=QR+MoMo" alt="QR MoMo" className="w-full h-auto max-w-[200px] mx-auto rounded-xl shadow-md" />
+                    <h3 className="font-semibold text-gray-900 my-2">Quét mã QR để thanh toán</h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Số tiền: <span className="font-bold text-pink-600">{formatCurrency(total)}</span>
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -350,21 +313,17 @@ const Pay = () => {
               <h3 className="text-xl font-bold text-gray-900 mb-6">Đơn hàng của bạn</h3>
 
               <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
-                {cartItems.length > 0 ? (
-                  cartItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-start gap-3">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 text-sm">{item.product.name}</h4>
-                        <p className="text-gray-500 text-xs">Số lượng: {item.quantity}</p>
-                      </div>
-                      <div className="text-sm font-semibold text-gray-900 text-right">
-                        {formatCurrency(item.price * item.quantity)}
-                      </div>
+                {cartItems.length > 0 ? cartItems.map((item) => (
+                  <div key={item.id} className="flex justify-between items-start gap-3">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 text-sm">{item.product.name}</h4>
+                      <p className="text-gray-500 text-xs">Số lượng: {item.quantity}</p>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-sm">Giỏ hàng của bạn đang trống.</p>
-                )}
+                    <div className="text-sm font-semibold text-gray-900 text-right">
+                      {formatCurrency(item.price * item.quantity)}
+                    </div>
+                  </div>
+                )) : <p className="text-gray-500 text-sm">Giỏ hàng của bạn đang trống.</p>}
               </div>
 
               <div className="border-t border-gray-200 pt-4 space-y-3 mb-6">

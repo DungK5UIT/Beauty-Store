@@ -18,10 +18,11 @@ const PaymentCallback = () => {
         queryParams[key] = value;
       });
 
-      if (Object.keys(queryParams).length === 0) {
+      // Validate các tham số cần thiết
+      if (!queryParams.vnp_TxnRef || !queryParams.vnp_ResponseCode || !queryParams.vnp_SecureHash) {
         setStatus('error');
-        setMessage('Không nhận được thông tin thanh toán từ VNPay. Vui lòng thử thanh toán lại.');
-        console.warn('Empty query params in PaymentCallback');
+        setMessage('Thiếu thông tin thanh toán từ VNPay. Vui lòng thử thanh toán lại.');
+        console.warn('Missing required VNPay params:', queryParams);
         return;
       }
 
@@ -31,7 +32,7 @@ const PaymentCallback = () => {
       try {
         const apiClient = axios.create({
           baseURL: 'https://deploy-backend-production-e64e.up.railway.app',
-          timeout: 10000, // Timeout 10s
+          timeout: 10000,
         });
 
         // Gửi GET đến backend callback
@@ -41,44 +42,23 @@ const PaymentCallback = () => {
         if (response.data.status === 'SUCCESS') {
           setStatus('success');
           setMessage('Thanh toán thành công! Đơn hàng của bạn đã được xác nhận.');
-          setTimeout(() => navigate('/order-success'), 3000);
         } else {
           setStatus('error');
           const responseCode = queryParams.vnp_ResponseCode;
-          switch (responseCode) {
-            case '03':
-              setMessage('Dữ liệu gửi sang VNPay không đúng định dạng (mã lỗi 03). Vui lòng kiểm tra giỏ hàng và thử lại.');
-              break;
-            case '01':
-              setMessage('Giao dịch đã tồn tại. Vui lòng kiểm tra lịch sử đơn hàng.');
-              break;
-            case '02':
-              setMessage('Thông tin merchant không hợp lệ. Vui lòng liên hệ hỗ trợ.');
-              break;
-            case '04':
-              setMessage('Website đang bị tạm khóa. Vui lòng thử lại sau.');
-              break;
-            case '07':
-              setMessage('Giao dịch bị nghi ngờ gian lận. Vui lòng liên hệ hỗ trợ.');
-              break;
-            case '08':
-              setMessage('Hệ thống ngân hàng đang bảo trì. Vui lòng thử lại sau.');
-              break;
-            case '24':
-              setMessage('Giao dịch đã bị hủy hoặc quá thời gian chờ thanh toán. Vui lòng thử lại.');
-              break;
-            case '79':
-              setMessage('Xác thực sai quá số lần cho phép. Vui lòng kiểm tra thông tin thanh toán.');
-              break;
-            case '97':
-              setMessage('Chữ ký không hợp lệ. Vui lòng liên hệ hỗ trợ.');
-              break;
-            case '99':
-              setMessage('Lỗi hệ thống VNPay. Vui lòng thử lại sau.');
-              break;
-            default:
-              setMessage(response.data.message || 'Giao dịch đã quá thời gian chờ thanh toán hoặc bị hủy. Vui lòng thử lại.');
-          }
+          const errorMessages = {
+            '00': 'Thanh toán thành công!',
+            '01': 'Giao dịch đã tồn tại. Vui lòng kiểm tra lịch sử đơn hàng.',
+            '02': 'Thông tin merchant không hợp lệ. Vui lòng liên hệ hỗ trợ.',
+            '03': 'Dữ liệu gửi sang VNPay không đúng định dạng. Vui lòng kiểm tra giỏ hàng và thử lại.',
+            '04': 'Website đang bị tạm khóa. Vui lòng thử lại sau.',
+            '07': 'Giao dịch bị nghi ngờ gian lận. Vui lòng liên hệ hỗ trợ.',
+            '08': 'Hệ thống ngân hàng đang bảo trì. Vui lòng thử lại sau.',
+            '24': 'Giao dịch đã bị hủy hoặc quá thời gian chờ thanh toán. Vui lòng thử lại.',
+            '79': 'Xác thực sai quá số lần cho phép. Vui lòng kiểm tra thông tin thanh toán.',
+            '97': 'Chữ ký không hợp lệ. Vui lòng liên hệ hỗ trợ.',
+            '99': 'Lỗi hệ thống VNPay. Vui lòng thử lại sau.',
+          };
+          setMessage(errorMessages[responseCode] || response.data.message || 'Giao dịch thất bại. Vui lòng thử lại.');
         }
       } catch (err) {
         console.error('Callback processing failed:', {
@@ -87,7 +67,7 @@ const PaymentCallback = () => {
           queryParams,
         });
         setStatus('error');
-        setMessage(err.response?.data?.message || 'Giao dịch đã quá thời gian chờ thanh toán. Vui lòng thử lại.');
+        setMessage(err.response?.data?.message || 'Lỗi hệ thống khi xử lý thanh toán. Vui lòng thử lại.');
       }
     };
 
@@ -108,7 +88,13 @@ const PaymentCallback = () => {
           <>
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-gray-900 mb-2">{message}</h2>
-            <p className="text-gray-600">Bạn sẽ được chuyển hướng đến trang đơn hàng.</p>
+            <p className="text-gray-600">Cảm ơn bạn đã mua sắm!</p>
+            <button
+              onClick={() => navigate('/order-success')}
+              className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Xem đơn hàng
+            </button>
           </>
         )}
         {status === 'error' && (
