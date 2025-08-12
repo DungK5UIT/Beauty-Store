@@ -27,7 +27,7 @@ const PaymentForm = () => {
 
     try {
       const response = await axios.post(
-        'http://localhost:8080/api/pay/vnpay/initiate',
+        'https://deploy-backend-production-e64e.up.railway.app/api/pay/vnpay/initiate',
         {
           orderId,
           amount,
