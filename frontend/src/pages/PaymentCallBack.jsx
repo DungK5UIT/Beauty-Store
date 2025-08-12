@@ -11,7 +11,7 @@ const PaymentCallback = () => {
 
   useEffect(() => {
     const processCallback = async () => {
-      // Lấy query params từ URL (từ VNPay redirect về)
+      // Lấy query params từ URL
       const params = new URLSearchParams(location.search);
       const queryParams = {};
       params.forEach((value, key) => {
@@ -20,31 +20,75 @@ const PaymentCallback = () => {
 
       if (Object.keys(queryParams).length === 0) {
         setStatus('error');
-        setMessage('Không có thông tin thanh toán.');
+        setMessage('Không nhận được thông tin thanh toán từ VNPay. Vui lòng thử thanh toán lại.');
+        console.warn('Empty query params in PaymentCallback');
         return;
       }
 
+      // Log query params để debug
+      console.log('VNPay callback query params:', queryParams);
+
       try {
         const apiClient = axios.create({
-          baseURL: 'https://deploy-backend-production-e64e.up.railway.app'
+          baseURL: 'https://deploy-backend-production-e64e.up.railway.app',
+          timeout: 10000, // Timeout 10s
         });
 
-        // Gửi GET đến backend callback với params
+        // Gửi GET đến backend callback
         const response = await apiClient.get('/api/pay/vnpay/callback', { params: queryParams });
+        console.log('Backend callback response:', response.data);
 
         if (response.data.status === 'SUCCESS') {
           setStatus('success');
           setMessage('Thanh toán thành công! Đơn hàng của bạn đã được xác nhận.');
-          // Cập nhật trạng thái order ở backend đã làm, frontend chỉ hiển thị
-          setTimeout(() => navigate('/order-success'), 3000); // Chuyển đến trang thành công sau 3s
+          setTimeout(() => navigate('/order-success'), 3000);
         } else {
           setStatus('error');
-          setMessage('Thanh toán thất bại. Vui lòng thử lại.');
+          // Xử lý mã lỗi VNPay cụ thể
+          const responseCode = queryParams.vnp_ResponseCode;
+          switch (responseCode) {
+            case '03':
+              setMessage('Dữ liệu gửi sang VNPay không đúng định dạng (mã lỗi 03). Vui lòng kiểm tra giỏ hàng và thử lại.');
+              break;
+            case '01':
+              setMessage('Giao dịch đã tồn tại. Vui lòng kiểm tra lịch sử đơn hàng.');
+              break;
+            case '02':
+              setMessage('Thông tin merchant không hợp lệ. Vui lòng liên hệ hỗ trợ.');
+              break;
+            case '04':
+              setMessage('Website đang bị tạm khóa. Vui lòng thử lại sau.');
+              break;
+            case '07':
+              setMessage('Giao dịch bị nghi ngờ gian lận. Vui lòng liên hệ hỗ trợ.');
+              break;
+            case '08':
+              setMessage('Hệ thống ngân hàng đang bảo trì. Vui lòng thử lại sau.');
+              break;
+            case '24':
+              setMessage('Giao dịch đã bị hủy. Vui lòng thử thanh toán lại.');
+              break;
+            case '79':
+              setMessage('Xác thực sai quá số lần cho phép. Vui lòng kiểm tra thông tin thanh toán.');
+              break;
+            case '97':
+              setMessage('Chữ ký không hợp lệ. Vui lòng liên hệ hỗ trợ.');
+              break;
+            case '99':
+              setMessage('Lỗi hệ thống VNPay. Vui lòng thử lại sau.');
+              break;
+            default:
+              setMessage(response.data.message || 'Thanh toán thất bại. Vui lòng thử lại.');
+          }
         }
       } catch (err) {
-        console.error('Callback processing failed:', err);
+        console.error('Callback processing failed:', {
+          error: err.message,
+          response: err.response?.data,
+          queryParams,
+        });
         setStatus('error');
-        setMessage(err.response?.data?.message || 'Lỗi khi xử lý kết quả thanh toán.');
+        setMessage(err.response?.data?.message || 'Lỗi khi xử lý kết quả thanh toán. Vui lòng thử lại.');
       }
     };
 
@@ -75,7 +119,7 @@ const PaymentCallback = () => {
             <p className="text-gray-600">Vui lòng kiểm tra lại hoặc liên hệ hỗ trợ.</p>
             <button
               onClick={() => navigate('/pay')}
-              className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg"
+              className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
             >
               Thử lại
             </button>
