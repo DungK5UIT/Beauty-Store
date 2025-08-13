@@ -81,7 +81,7 @@ const Pay = () => {
     try {
       if (paymentMethod === 'vnpay') {
         const orderInfo = `Thanh toán đơn hàng cho ${user.username || 'Khách hàng'} - ${new Date().toLocaleString('vi-VN')}`;
-        const response = await axios.post('https://deploy-backend-production-e64e.up.railway.app/api/payment/create', {
+        const response = await axios.post('https://deploy-backend-production-e64e.up.railway.app/api/pay/vnpay/initiate', {
           amount: totalAmount,
           orderInfo,
           orderId: `ORDER_${Date.now()}`,
