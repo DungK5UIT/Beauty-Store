@@ -1,34 +1,34 @@
-# BEAUTY STORE
+# 🌸 BEAUTY LUXE  
 
-Một ứng dụng E-commerce chuyên bán mỹ phẩm, được phát triển dựa trên **ReactJS** và  & **TailWindCSS** and **Spring Boot**.
+Một ứng dụng **E-commerce** chuyên bán mỹ phẩm, được phát triển dựa trên **ReactJS**, **TailwindCSS** và **Spring Boot**.
 
-## 📖 Mục lục
+---
 
-- [Giới thiệu](#giới-thiệu)
-- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
-- [Yêu cầu hệ thống](#yêu-cầu-hệ-thống)
-- [Hướng dẫn cài đặt và chạy ứng dụng](#hướng-dẫn-cài-đặt-và-chạy-ứng-dụng)
-- [Thông tin tài khoản](#thông-tin-tài-khoản)
-- [Giao diện](#giao-diện)
-- [Đóng góp](#đóng-góp)
-- [Liên hệ](#liên-hệ)
+## 🌟 Giới thiệu về Beauty Luxe
 
-## Giới thiệu về trang web
+**Beauty Luxe** là nền tảng thương mại điện tử chuyên cung cấp các sản phẩm mỹ phẩm cao cấp như sữa rửa mặt, serum, kem dưỡng, mặt nạ và nhiều sản phẩm chăm sóc da khác. Ứng dụng được phát triển với mục tiêu mang đến cho khách hàng trải nghiệm mua sắm trực tuyến **tiện lợi – nhanh chóng – an toàn**.  
 
-**=Beauty Store** là một nền tảng thương mại điện tử được thiết kế để cung cấp các sản phẩm mỹ phẩm, sữa rửa mặt, serum, kem dưỡng, ... và các sản phẩm liên quan. Ứng dụng hỗ trợ các tính năng như quản lý sản phẩm, giỏ hàng, đơn hàng, và xác thực người dùng bằng JWT. Với thiết kế hiện đại và giao diện thân thiện, 
-Beauty Store hướng đến việc mang lại trải nghiệm tốt nhất cho người dùng yêu thích skincare.
+Với thiết kế hiện đại, giao diện thân thiện cùng hệ thống quản lý sản phẩm, giỏ hàng, đơn hàng và xác thực người dùng bằng **JWT**, Beauty Luxe giúp người dùng dễ dàng tìm kiếm và lựa chọn sản phẩm phù hợp, đồng thời đảm bảo quá trình mua sắm diễn ra mượt mà.  
 
-## Công nghệ sử dụng
+Beauty Luxe hướng tới việc trở thành **điểm đến tin cậy** cho những ai yêu thích làm đẹp và chăm sóc bản thân, đồng thời không ngừng cập nhật các xu hướng mỹ phẩm mới nhất để đáp ứng nhu cầu đa dạng của khách hàng.  
 
-Deep Thocks được xây dựng với các công nghệ hiện đại:
+---
 
-- **Frontend**:
+## 📩 Liên hệ
 
-  - **ReactJS**: Thư viện JavaScript để xây dựng giao diện người dùng.
-  - **TailwindCSS**: Framework CSS để thiết kế giao diện responsive và hiện đại.
-  - **Vite**: Công cụ build nhanh và hiệu quả cho frontend.
+- 🌐 **Website:** [https://beauty-store-rho.vercel.app/](https://beauty-store-rho.vercel.app/)  
+- 📱 **SĐT:** 0896 003 107  
+- 📧 **Email:** nguyenhuudung1072005@gmail.com  
 
-- **Backend**:
+---
 
-  - **Java Spring Boot**: Framework Java để xây dựng API RESTful mạnh mẽ và bảo mật.
-  - **PostgreSQL**: Cơ sở dữ liệu quan hệ để lưu trữ thông tin người dùng, sản phẩm, và đơn hàng.
+## 🛠 Công nghệ sử dụng
+
+### **Frontend**
+- **ReactJS** – Xây dựng giao diện người dùng
+- **TailwindCSS** – Thiết kế giao diện hiện đại, responsive
+- **Vite** – Công cụ build nhanh, tối ưu cho React
+
+### **Backend**
+- **Java Spring Boot** – Xây dựng API RESTful mạnh mẽ, bảo mật
+- **Supabase** – Lưu trữ thông tin người dùng, sản phẩm, đơn hàng
