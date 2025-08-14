@@ -4,7 +4,7 @@ import {
   ArrowLeft, User, Phone, Mail, MapPin, Package, 
   Clock, CheckCircle, XCircle, Truck, Eye, 
   CreditCard, Calendar, Loader2, RefreshCw,
-  ShoppingBag, Star, Filter
+  ShoppingBag, AlertCircle
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -88,8 +88,9 @@ const Profile = () => {
   const getStatusInfo = (status) => {
     const statusMap = {
       'PENDING': { label: 'Chờ xử lý', color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Clock },
-      'CONFIRMED': { label: 'Đã xác nhận', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: CheckCircle },
-      'SHIPPING': { label: 'Đang giao', color: 'bg-purple-100 text-purple-700 border-purple-200', icon: Truck },
+      'PAID': { label: 'Đã thanh toán', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: CheckCircle },
+      'FAILED': { label: 'Thất bại', color: 'bg-red-100 text-red-700 border-red-200', icon: AlertCircle },
+      'SHIPPED': { label: 'Đang giao', color: 'bg-purple-100 text-purple-700 border-purple-200', icon: Truck },
       'DELIVERED': { label: 'Đã giao', color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
       'CANCELLED': { label: 'Đã hủy', color: 'bg-red-100 text-red-700 border-red-200', icon: XCircle },
     };
@@ -98,9 +99,10 @@ const Profile = () => {
 
   const getPaymentMethodLabel = (method) => {
     const methodMap = {
-      'COD': 'Thanh toán khi nhận hàng',
+      'CASH_ON_DELIVERY': 'Thanh toán khi nhận hàng',
       'VNPAY': 'VNPay',
-      'MOMO': 'Ví MoMo'
+      'MOMO': 'Ví MoMo',
+      'OTHER': 'Khác'
     };
     return methodMap[method] || method;
   };
@@ -108,7 +110,9 @@ const Profile = () => {
   const filteredOrders = orders.filter(order => {
     if (activeTab === 'all') return true;
     if (activeTab === 'pending') return order.status === 'PENDING';
-    if (activeTab === 'shipping') return order.status === 'SHIPPING';
+    if (activeTab === 'paid') return order.status === 'PAID';
+    if (activeTab === 'failed') return order.status === 'FAILED';
+    if (activeTab === 'shipped') return order.status === 'SHIPPED';
     if (activeTab === 'delivered') return order.status === 'DELIVERED';
     if (activeTab === 'cancelled') return order.status === 'CANCELLED';
     return true;
@@ -117,7 +121,9 @@ const Profile = () => {
   const orderStats = {
     total: orders.length,
     pending: orders.filter(o => o.status === 'PENDING').length,
-    shipping: orders.filter(o => o.status === 'SHIPPING').length,
+    paid: orders.filter(o => o.status === 'PAID').length,
+    failed: orders.filter(o => o.status === 'FAILED').length,
+    shipped: orders.filter(o => o.status === 'SHIPPED').length,
     delivered: orders.filter(o => o.status === 'DELIVERED').length,
     cancelled: orders.filter(o => o.status === 'CANCELLED').length,
   };
@@ -172,7 +178,7 @@ const Profile = () => {
               <div className="bg-gray-50 p-4 rounded-xl">
                 <div className="flex items-start gap-2">
                   <MapPin className="w-5 h-5 text-gray-500 mt-0.5" />
-                  <p className="text-gray-900">{order.shippingAddress}</p>
+                  <p className="text-gray-900">{order.shippingAddress || 'Không có thông tin'}</p>
                 </div>
               </div>
             </div>
@@ -249,7 +255,7 @@ const Profile = () => {
                 <div className="bg-[#483C54] p-4 rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-4">
                   <User className="w-8 h-8 text-white" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">{userInfo?.name || user?.name || 'Người dùng'}</h2>
+                <h2 className="text-xl font-bold text-gray-900">{userInfo?.full_name || user?.full_name || 'Người dùng'}</h2>
                 <p className="text-gray-500">{userInfo?.email || user?.email}</p>
               </div>
 
@@ -257,6 +263,10 @@ const Profile = () => {
                 <div className="flex items-center gap-3">
                   <Phone className="w-4 h-4 text-gray-500" />
                   <span className="text-sm text-gray-700">{userInfo?.phone || 'Chưa cập nhật'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm text-gray-700">{userInfo?.address || 'Chưa cập nhật'}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="w-4 h-4 text-gray-500" />
@@ -298,7 +308,7 @@ const Profile = () => {
           {/* Right Column - Orders */}
           <div className="lg:col-span-3">
             {/* Order Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
               <div 
                 onClick={() => setActiveTab('all')}
                 className={`bg-white rounded-xl p-4 cursor-pointer transition-all ${activeTab === 'all' ? 'ring-2 ring-[#483C54] bg-[#483C54] text-white' : 'hover:shadow-md'}`}
@@ -322,12 +332,23 @@ const Profile = () => {
               </div>
 
               <div 
-                onClick={() => setActiveTab('shipping')}
-                className={`bg-white rounded-xl p-4 cursor-pointer transition-all ${activeTab === 'shipping' ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:shadow-md'}`}
+                onClick={() => setActiveTab('paid')}
+                className={`bg-white rounded-xl p-4 cursor-pointer transition-all ${activeTab === 'paid' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'}`}
+              >
+                <div className="text-center">
+                  <CreditCard className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+                  <div className="text-lg font-bold text-blue-600">{orderStats.paid}</div>
+                  <div className="text-xs text-blue-600">Đã thanh toán</div>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => setActiveTab('shipped')}
+                className={`bg-white rounded-xl p-4 cursor-pointer transition-all ${activeTab === 'shipped' ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:shadow-md'}`}
               >
                 <div className="text-center">
                   <Truck className="w-6 h-6 mx-auto mb-2 text-purple-600" />
-                  <div className="text-lg font-bold text-purple-600">{orderStats.shipping}</div>
+                  <div className="text-lg font-bold text-purple-600">{orderStats.shipped}</div>
                   <div className="text-xs text-purple-600">Đang giao</div>
                 </div>
               </div>
@@ -349,8 +370,8 @@ const Profile = () => {
               >
                 <div className="text-center">
                   <XCircle className="w-6 h-6 mx-auto mb-2 text-red-600" />
-                  <div className="text-lg font-bold text-red-600">{orderStats.cancelled}</div>
-                  <div className="text-xs text-red-600">Đã hủy</div>
+                  <div className="text-lg font-bold text-red-600">{orderStats.cancelled + orderStats.failed}</div>
+                  <div className="text-xs text-red-600">Đã hủy/Thất bại</div>
                 </div>
               </div>
             </div>
@@ -420,7 +441,7 @@ const Profile = () => {
                             <p className="text-xs text-gray-500 mb-1">Địa chỉ giao hàng</p>
                             <div className="flex items-center gap-2">
                               <MapPin className="w-4 h-4 text-gray-400" />
-                              <span className="text-sm text-gray-700 truncate">{order.shippingAddress}</span>
+                              <span className="text-sm text-gray-700 truncate">{order.shippingAddress || 'Không có thông tin'}</span>
                             </div>
                           </div>
                           <div>
