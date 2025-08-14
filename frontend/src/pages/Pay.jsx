@@ -122,6 +122,11 @@ const Pay = () => {
       totalAmount: totalAmount, // Thêm totalAmount
     };
 
+    // Thêm trạng thái thanh toán cho COD (chưa thanh toán)
+    if (paymentMethod === 'cod') {
+      orderData.paymentStatus = 'PENDING'; // Hoặc 'UNPAID' tùy theo backend của bạn định nghĩa
+    }
+
     try {
       const apiClient = axios.create({
         baseURL: 'https://deploy-backend-production-e64e.up.railway.app',
@@ -141,7 +146,7 @@ const Pay = () => {
       } else if (paymentMethod === 'cod') {
         const response = await apiClient.post('/api/orders/create', orderData);
         console.log('COD order response:', response.data);
-        setToast({ show: true, message: 'Đặt hàng thành công với phương thức thanh toán khi nhận hàng!', type: 'success' });
+        setToast({ show: true, message: 'Đặt hàng thành công với phương thức thanh toán khi nhận hàng! Trạng thái: Chưa thanh toán.', type: 'success' });
         setTimeout(() => navigate('/profile'), 2000);
       } else if (paymentMethod === 'momo') {
         setError('Phương thức thanh toán MoMo chưa được triển khai.');
