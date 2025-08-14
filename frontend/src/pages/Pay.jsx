@@ -142,7 +142,7 @@ const Pay = () => {
         const response = await apiClient.post('/api/orders/create', orderData);
         console.log('COD order response:', response.data);
         setToast({ show: true, message: 'Đặt hàng thành công với phương thức thanh toán khi nhận hàng!', type: 'success' });
-        setTimeout(() => navigate('/order-success'), 2000);
+        setTimeout(() => navigate('/profile'), 2000);
       } else if (paymentMethod === 'momo') {
         setError('Phương thức thanh toán MoMo chưa được triển khai.');
         setToast({ show: true, message: 'Phương thức thanh toán MoMo chưa được triển khai.', type: 'error' });

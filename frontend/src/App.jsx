@@ -12,6 +12,7 @@ import ChatBox from './components/ChatBox';
 import Catagory from './pages/Catagory';
 import Contact from './pages/Contact';
 import PaymentCallback from './pages/PaymentCallback ';
+import Profile from './pages/Profile';
 const App = () => {
   return (
     <AuthProvider>
@@ -27,7 +28,9 @@ const App = () => {
             <Route path="*" element={<div className="text-center p-20">404 - Trang không tồn tại</div>} />
             <Route path="/catagory" element={<Catagory />} />
             <Route path="/contact" element={<Contact />} />
-           <Route path="/payment-callback" element={<PaymentCallback/>} />
+            <Route path="/payment-callback" element={<PaymentCallback/>} />
+            <Route path="/profile" element={<Profile />} />
+
           </Routes>
           <ChatBox/>
         </main>
