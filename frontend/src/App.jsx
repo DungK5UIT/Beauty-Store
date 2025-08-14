@@ -13,6 +13,7 @@ import Catagory from './pages/Catagory';
 import Contact from './pages/Contact';
 import PaymentCallback from './pages/PaymentCallback ';
 import Profile from './pages/Profile';
+import About from './pages/About';
 const App = () => {
   return (
     <AuthProvider>
@@ -30,6 +31,7 @@ const App = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/payment-callback" element={<PaymentCallback/>} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/about" element={<About />} />
 
           </Routes>
           <ChatBox/>

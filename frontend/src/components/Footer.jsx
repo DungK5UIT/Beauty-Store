@@ -46,7 +46,7 @@ const Footer = () => (
         </div>
       </div>
       <div className="border-t border-gray-300 pt-6 flex justify-between items-center">
-        <p className="text-sm text-gray-600">© Beauty Luxe 2024</p>
+        <p className="text-sm text-gray-600">© Beauty Luxe 2025</p>
         <div className="flex space-x-3">
           <a href="#" className="text-sm text-gray-600 hover:text-emerald-500 transition-colors duration-300">Chính sách bảo mật</a>
           <a href="#" className="text-sm text-gray-600 hover:text-emerald-500 transition-colors duration-300">Điều khoản dịch vụ</a>
