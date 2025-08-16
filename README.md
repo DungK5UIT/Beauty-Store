@@ -32,3 +32,14 @@ Beauty Luxe hướng tới việc trở thành **điểm đến tin cậy** cho 
 ### **Backend**
 - **Java Spring Boot** – Xây dựng API RESTful mạnh mẽ, bảo mật
 - **Supabase** – Lưu trữ thông tin người dùng, sản phẩm, đơn hàng
+
+## 💳 Thanh toán (Demo)
+
+Ứng dụng hỗ trợ tích hợp thanh toán online qua cổng VNPay.  
+Để kiểm thử, bạn có thể sử dụng **thông tin thẻ test** (do VNPay cung cấp):
+
+- **Ngân hàng:** NCB  
+- **Số thẻ:** 9704198526191432198 
+- **Tên chủ thẻ:** NGUYEN VAN A  
+- **Ngày phát hành:** 07/15  
+- **Mật khẩu OTP:** 123456  
