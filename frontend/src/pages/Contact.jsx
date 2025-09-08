@@ -19,21 +19,35 @@ export default function Contact() {
       [e.target.name]: e.target.value
     });
   };
+const handleSubmit = (e) => {
+  e.preventDefault();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: ''
-      });
-    }, 3000);
-  };
+  // Gửi sự kiện về GA4
+  if (window.gtag) {
+    window.gtag("event", "contact_form_submit", {
+      event_category: "engagement",
+      event_label: "Liên hệ thành công",
+      value: 1,
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+    });
+  }
+
+  setIsSubmitted(true);
+
+  setTimeout(() => {
+    setIsSubmitted(false);
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      subject: '',
+      message: ''
+    });
+  }, 3000);
+};
+
 
   return (
     <div 

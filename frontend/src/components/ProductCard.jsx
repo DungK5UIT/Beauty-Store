@@ -29,7 +29,29 @@ const ProductCard = ({ product, onAddToCart }) => {
     setIsFavorited((prev) => !prev);
   };
 
-  const handleAddToCart = () => {
+   const handleAddToCart = () => {
+    try {
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'add_to_cart', {
+          currency: 'VND',
+          value: price,
+          items: [
+            {
+              item_id: id,
+              item_name: name,
+              price: price,
+              quantity: 1,
+            },
+          ],
+        });
+      } else {
+        // console.warn('gtag chưa sẵn sàng: add_to_cart', id, name);
+      }
+    } catch (e) {
+      console.error('Error sending add_to_cart', e);
+    }
+
+    // Gọi callback lên parent để xử lý thêm vào giỏ (API, toast...)
     if (onAddToCart) {
       onAddToCart(product);
     }

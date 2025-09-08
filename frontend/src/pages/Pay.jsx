@@ -67,7 +67,19 @@ const Pay = () => {
       }
     };
     fetchCart();
-  }, [navigate, user, logout]);
+   if (window.gtag) {
+    window.gtag("event", "begin_checkout", {
+      currency: "VND",
+      value: totalAmount,
+      items: cartItems.map(item => ({
+        item_id: item.product.id,
+        item_name: item.product.name,
+        quantity: item.quantity,
+        price: item.price
+      }))
+    });
+  }
+},[navigate, user, logout]);
 
   const handleInputChange = (e) => {
     setShippingInfo({
@@ -110,6 +122,7 @@ const Pay = () => {
       setToast({ show: true, message: 'Vui lòng điền đầy đủ các trường thông tin giao hàng có dấu *', type: 'error' });
       setIsLoading(false);
       return;
+      
     }
 
     // --- TẠO DỮ LIỆU ĐƠN HÀNG ---
@@ -171,6 +184,21 @@ const Pay = () => {
     } finally {
       setIsLoading(false);
     }
+
+    if (window.gtag) {
+  window.gtag("event", "purchase", {
+    transaction_id: new Date().getTime(), // hoặc lấy từ backend nếu có
+    affiliation: "Beauty Store",
+    value: totalAmount,
+    currency: "VND",
+    items: cartItems.map(item => ({
+      item_id: item.product.id,
+      item_name: item.product.name,
+      quantity: item.quantity,
+      price: item.price
+    }))
+  });
+}
   };
 
   const total = cartItems.reduce(
