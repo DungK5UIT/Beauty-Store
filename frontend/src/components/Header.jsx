@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
+const API_BASE_URL = 'https://deploy-backend-niu0.onrender.com';
 
 const Header = () => {
   const { user, logout } = useAuth();
