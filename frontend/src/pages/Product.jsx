@@ -6,7 +6,7 @@ import ProductCard from '../components/ProductCard.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 // Sử dụng biến môi trường hoặc fallback
-const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
+const API_BASE_URL = 'https://deploy-backend-niu0.onrender.com';
 
 const Product = () => {
   const { user } = useAuth();

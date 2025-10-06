@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import mypham from '../assets/mypham.jpg';
 
 // Constants
-const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
+const API_BASE_URL = 'https://deploy-backend-niu0.onrender.com';
 
 // Utility function to format currency
 const formatCurrency = (value) => {

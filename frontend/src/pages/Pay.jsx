@@ -47,7 +47,7 @@ const Pay = () => {
 
       try {
         const apiClient = axios.create({
-          baseURL: 'https://deploy-backend-production-e64e.up.railway.app',
+          baseURL: 'https://deploy-backend-niu0.onrender.com',
           timeout: 10000,
         });
         const response = await apiClient.get(`/api/cart/${user.id}`);
@@ -142,7 +142,7 @@ const Pay = () => {
 
     try {
       const apiClient = axios.create({
-        baseURL: 'https://deploy-backend-production-e64e.up.railway.app',
+        baseURL: 'https://deploy-backend-niu0.onrender.com',
         timeout: 10000,
       });
 

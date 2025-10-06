@@ -50,7 +50,7 @@ const Profile = () => {
   const fetchUserData = async () => {
     try {
       const apiClient = axios.create({
-        baseURL: 'https://deploy-backend-production-e64e.up.railway.app',
+        baseURL: 'https://deploy-backend-niu0.onrender.com',
         timeout: 10000,
       });
       const response = await apiClient.get(`/api/users/${user.id}`);
@@ -64,7 +64,7 @@ const Profile = () => {
     try {
       setIsLoading(true);
       const apiClient = axios.create({
-        baseURL: 'https://deploy-backend-production-e64e.up.railway.app',
+        baseURL: 'https://deploy-backend-niu0.onrender.com',
         timeout: 10000,
       });
       const response = await apiClient.get(`/api/orders/user/${user.id}`);

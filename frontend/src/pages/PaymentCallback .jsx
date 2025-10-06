@@ -31,7 +31,7 @@ const PaymentCallback = () => {
 
       try {
         const apiClient = axios.create({
-          baseURL: 'https://deploy-backend-production-e64e.up.railway.app',
+          baseURL: 'https://deploy-backend-niu0.onrender.com',
           timeout: 10000,
         });
 

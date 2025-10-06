@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE_URL = 'https://deploy-backend-production-e64e.up.railway.app';
+const API_BASE_URL = 'https://deploy-backend-niu0.onrender.com';
 
 const formatCurrency = (value) => {
   if (value == null) return '';
